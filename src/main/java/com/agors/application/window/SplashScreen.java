@@ -1,5 +1,6 @@
 package com.agors.application.window;
 
+import com.agors.application.form.HistotrekApp;
 import javafx.animation.*;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
@@ -11,57 +12,45 @@ import javafx.util.Duration;
 
 public class SplashScreen {
 
-    public void show(Stage primaryStage) {
+    public void show(Stage stage) {
         Text title = new Text("HISTOTREK");
-        title.setFill(Color.WHITE);
-        title.setFont(Font.font("Impact", 80));
+        title.setFill(Color.web("#c2b280")); // Вінтажний стиль
+        title.setFont(Font.font("Times New Roman", 80));
         title.setOpacity(0);
-        title.setScaleX(0.1);
-        title.setScaleY(0.1);
+        title.setTranslateY(-50);
 
         StackPane root = new StackPane(title);
-        root.setStyle("-fx-background-color: black;");
-        Scene scene = new Scene(root, 800, 450);
+        root.setStyle("-fx-background-color: #2a2a2a;");
+        Scene scene = new Scene(root, 800, 600);
 
+        // Анімації: fade + move
         FadeTransition fadeIn = new FadeTransition(Duration.seconds(2), title);
         fadeIn.setFromValue(0);
         fadeIn.setToValue(1);
 
-        ScaleTransition scaleUp = new ScaleTransition(Duration.seconds(2), title);
-        scaleUp.setFromX(0.1);
-        scaleUp.setFromY(0.1);
-        scaleUp.setToX(1);
-        scaleUp.setToY(1);
+        TranslateTransition moveDown = new TranslateTransition(Duration.seconds(2), title);
+        moveDown.setFromY(-50);
+        moveDown.setToY(0);
 
-        ParallelTransition appear = new ParallelTransition(fadeIn, scaleUp);
+        ParallelTransition showTitle = new ParallelTransition(fadeIn, moveDown);
 
-        PauseTransition pause = new PauseTransition(Duration.seconds(2));
+        showTitle.setOnFinished(e -> transitionToMain(stage));
 
-        FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), title);
-        fadeOut.setFromValue(1);
-        fadeOut.setToValue(0);
-
-        SequentialTransition sequence = new SequentialTransition(appear, pause, fadeOut);
-        sequence.setOnFinished(event -> {
-            showMainScene(primaryStage);
-        });
-
-        primaryStage.setScene(scene);
-        primaryStage.setFullScreenExitHint("");
-        primaryStage.setFullScreen(true);
-        primaryStage.show();
-        sequence.play();
+        stage.setScene(scene);
+        stage.show();
+        showTitle.play();
     }
 
-    private void showMainScene(Stage stage) {
-        Text mainText = new Text("Головне вікно");
-        mainText.setFill(Color.WHITE);
-        mainText.setFont(Font.font(40));
-        StackPane mainRoot = new StackPane(mainText);
-        mainRoot.setStyle("-fx-background-color: darkslategray;");
-        Scene mainScene = new Scene(mainRoot, 800, 450);
-
-        stage.setScene(mainScene);
-        stage.setFullScreen(true);
+    private void transitionToMain(Stage stage) {
+        // Плавний fade out Splash
+        FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), stage.getScene().getRoot());
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+        fadeOut.setOnFinished(e -> {
+            // Після fade out запускаємо головну сцену
+            HistotrekApp app = new HistotrekApp();
+            app.start(stage);
+        });
+        fadeOut.play();
     }
 }
