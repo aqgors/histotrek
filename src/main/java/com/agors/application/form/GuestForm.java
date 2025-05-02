@@ -42,6 +42,12 @@ public class GuestForm {
             primaryStage.hide();
         });
 
+        loginButton.setOnAction(e -> {
+            Stage loginStage = new Stage();
+            new LoginForm().show(loginStage, primaryStage);
+            primaryStage.hide();
+        });
+
         HBox buttonBox = new HBox(10, loginButton, signupButton);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
@@ -95,7 +101,6 @@ public class GuestForm {
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 1);");
         card.setPrefWidth(220);
 
-        // Hover Zoom effect with smooth animation
         card.setOnMouseEntered(e -> applyHoverZoom(card));
         card.setOnMouseExited(e -> resetZoom(card));
 

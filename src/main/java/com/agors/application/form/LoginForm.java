@@ -13,31 +13,30 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-public class SignupForm {
+public class LoginForm {
 
     public void show(Stage stage, Stage previousStage) {
         VBox formBox = createFormLayout();
 
-        Text titleLabel = createTitle("Sign up");
-        TextField usernameField = createField("Username");
-        TextField emailField = createField("Email");
+        Text titleLabel = createTitle("Log in");
+        TextField userOrEmailField = createField("Username or Email");
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Password");
         styleField(passwordField);
 
-        Button signupButton = createMainButton("Create an account");
-        signupButton.setOnAction(e -> {
-            System.out.println("Користувач зареєстрований: " + usernameField.getText());
-            showAlert("Успіх!", "Реєстрація пройшла успішно!");
+        Button loginButton = createMainButton("Log in");
+        loginButton.setOnAction(e -> {
+            System.out.println("Logging in with: " + userOrEmailField.getText());
+            showAlert("Info", "Вхід виконано (поки що заглушка)");
         });
 
         Button backButton = createBorderedButton("Back");
         backButton.setOnAction(e -> {
-            stage.hide();
+            stage.close();
             previousStage.show();
         });
 
-        VBox fields = new VBox(15, usernameField, emailField, passwordField, signupButton, backButton);
+        VBox fields = new VBox(15, userOrEmailField, passwordField, loginButton, backButton);
         fields.setAlignment(Pos.CENTER);
         formBox.getChildren().addAll(titleLabel, fields);
 
@@ -57,7 +56,6 @@ public class SignupForm {
         stage.setMinWidth(800);
         stage.setMinHeight(600);
         stage.show();
-
         root.requestFocus();
     }
 
@@ -87,7 +85,8 @@ public class SignupForm {
         field.setMaxWidth(320);
         field.setPrefHeight(45);
         field.setFont(Font.font("Arial", 14));
-        field.setStyle("-fx-background-color: rgba(255, 255, 255, 0.6); -fx-border-color: #d3d3d3; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 0 10 0 10;");
+        field.setStyle("-fx-background-color: rgba(255, 255, 255, 0.6); -fx-border-color: #d3d3d3; " +
+            "-fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 0 10 0 10;");
     }
 
     private Button createMainButton(String text) {
@@ -105,50 +104,34 @@ public class SignupForm {
         Button button = new Button(text);
         button.setPrefSize(320, 50);
         button.setFont(Font.font("Arial", 16));
-        button.setStyle("-fx-background-color: transparent; -fx-border-color: #c2b280; -fx-text-fill: #3e2723; -fx-background-radius: 12; -fx-border-radius: 12;");
+        button.setStyle("-fx-background-color: transparent; -fx-border-color: #c2b280; -fx-text-fill: #3e2723; " +
+            "-fx-background-radius: 12; -fx-border-radius: 12;");
         button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #f5e4c4; -fx-border-color: #a99e75; -fx-text-fill: #3e2723; -fx-background-radius: 12; -fx-border-radius: 12;"));
         button.setOnMouseExited(e -> button.setStyle("-fx-background-color: transparent; -fx-border-color: #c2b280; -fx-text-fill: #3e2723; -fx-background-radius: 12; -fx-border-radius: 12;"));
         button.setEffect(new DropShadow(5, Color.rgb(0, 0, 0, 0.1)));
         return button;
     }
 
-    private void playSandAnimation(Pane sandPane) {
+    private void playSandAnimation(Pane pane) {
         Timeline sandTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
-            double width = sandPane.getWidth();
-            double height = sandPane.getHeight();
+            double width = pane.getWidth();
+            double height = pane.getHeight();
 
             Circle sand = new Circle(2, Color.web("#000000", 0.4));
             sand.setCenterX(Math.random() * width);
             sand.setCenterY(height);
 
-            sandPane.getChildren().add(sand);
+            pane.getChildren().add(sand);
 
             TranslateTransition tt = new TranslateTransition(Duration.seconds(3), sand);
             tt.setByY(-height);
             tt.setByX(Math.random() * 60 - 30);
-            tt.setOnFinished(ev -> sandPane.getChildren().remove(sand));
+            tt.setOnFinished(ev -> pane.getChildren().remove(sand));
             tt.play();
         }));
         sandTimeline.setCycleCount(Timeline.INDEFINITE);
         sandTimeline.setRate(1.2);
         sandTimeline.play();
-    }
-
-    private void createFloatingParticle(Pane pane, double heightFactor) {
-        double width = pane.getWidth();
-        double height = pane.getHeight();
-
-        Circle particle = new Circle(2, Color.web("#000000", 0.4));
-        particle.setCenterX(Math.random() * width);
-        particle.setCenterY(height * heightFactor);
-
-        pane.getChildren().add(particle);
-
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(3), particle);
-        tt.setByY(-height);
-        tt.setByX(Math.random() * 60 - 30);
-        tt.setOnFinished(ev -> pane.getChildren().remove(particle));
-        tt.play();
     }
 
     private void showAlert(String title, String message) {

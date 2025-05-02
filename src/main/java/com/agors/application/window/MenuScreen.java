@@ -1,6 +1,7 @@
 package com.agors.application.window;
 
 import com.agors.application.form.GuestForm;
+import com.agors.application.form.LoginForm;
 import com.agors.application.form.SignupForm;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -32,7 +33,11 @@ public class MenuScreen {
         topSection.setPadding(new Insets(30, 0, 0, 0));
 
         Button loginButton = createAnimatedButton("🔐 Log in");
-        loginButton.setOnAction(e -> System.out.println("Вхід (заглушка)"));
+        loginButton.setOnAction(e -> {
+            Stage loginStage = new Stage();
+            new LoginForm().show(loginStage, stage);
+            stage.hide();
+        });
 
         Button signupButton = createAnimatedButton("📝 Sign up");
         signupButton.setOnAction(e -> {
