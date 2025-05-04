@@ -1,5 +1,11 @@
 package com.agors.application.form;
 
+import com.agors.domain.dao.UserDao;
+import com.agors.domain.entity.User;
+import com.agors.domain.validation.SignupValidator;
+import com.agors.infrastructure.util.PasswordUtil;
+import com.agors.infrastructure.message.MessageBox;
+
 import javafx.animation.*;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -13,23 +19,59 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.Map;
+
 public class SignupForm {
 
     public void show(Stage stage, Stage previousStage) {
-        VBox formBox = createFormLayout();
+        VBox formBox = new VBox(20);
+        formBox.setPadding(new Insets(40));
+        formBox.setAlignment(Pos.CENTER);
 
-        Text titleLabel = createTitle("Sign up");
+        Text titleLabel = new Text("Sign up");
+        titleLabel.setFont(Font.font("Arial", 32));
+        titleLabel.setFill(Color.web("#3e2723"));
+        titleLabel.setEffect(new DropShadow(3, Color.rgb(0, 0, 0, 0.15)));
+
         TextField usernameField = createField("Username");
+        Label usernameError = createErrorLabel();
+
         TextField emailField = createField("Email");
+        Label emailError = createErrorLabel();
+
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Password");
         styleField(passwordField);
+        Label passwordError = createErrorLabel();
 
         Button signupButton = createMainButton("Create an account");
         signupButton.setOnAction(e -> {
-            System.out.println("Користувач зареєстрований: " + usernameField.getText());
-            showAlert("Успіх!", "Реєстрація пройшла успішно!");
+            Map<String, String> errors = SignupValidator.validate(
+                usernameField.getText(),
+                emailField.getText(),
+                passwordField.getText()
+            );
+
+            usernameError.setText(errors.getOrDefault("username", ""));
+            emailError.setText(errors.getOrDefault("email", ""));
+            passwordError.setText(errors.getOrDefault("password", ""));
+
+            if (errors.isEmpty()) {
+                User user = new User();
+                user.setUsername(usernameField.getText());
+                user.setEmail(emailField.getText());
+                user.setPasswordHash(PasswordUtil.hashPassword(passwordField.getText()));
+                user.setRole("USER");
+
+                new UserDao().addUser(user);
+                MessageBox.show("Успіх", "Реєстрація пройшла успішно!");
+
+                usernameField.clear();
+                emailField.clear();
+                passwordField.clear();
+            }
         });
+
 
         Button backButton = createBorderedButton("Back");
         backButton.setOnAction(e -> {
@@ -37,8 +79,14 @@ public class SignupForm {
             previousStage.show();
         });
 
-        VBox fields = new VBox(15, usernameField, emailField, passwordField, signupButton, backButton);
+        VBox fields = new VBox(10,
+            usernameField, usernameError,
+            emailField, emailError,
+            passwordField, passwordError,
+            signupButton, backButton
+        );
         fields.setAlignment(Pos.CENTER);
+
         formBox.getChildren().addAll(titleLabel, fields);
 
         Pane animationLayer = new Pane();
@@ -61,21 +109,6 @@ public class SignupForm {
         root.requestFocus();
     }
 
-    private VBox createFormLayout() {
-        VBox vbox = new VBox(20);
-        vbox.setPadding(new Insets(40));
-        vbox.setAlignment(Pos.CENTER);
-        return vbox;
-    }
-
-    private Text createTitle(String text) {
-        Text title = new Text(text);
-        title.setFont(Font.font("Arial", 32));
-        title.setFill(Color.web("#3e2723"));
-        title.setEffect(new DropShadow(3, Color.rgb(0, 0, 0, 0.15)));
-        return title;
-    }
-
     private TextField createField(String prompt) {
         TextField field = new TextField();
         field.setPromptText(prompt);
@@ -87,7 +120,15 @@ public class SignupForm {
         field.setMaxWidth(320);
         field.setPrefHeight(45);
         field.setFont(Font.font("Arial", 14));
-        field.setStyle("-fx-background-color: rgba(255, 255, 255, 0.6); -fx-border-color: #d3d3d3; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 0 10 0 10;");
+        field.setStyle("-fx-background-color: rgba(255, 255, 255, 0.6); -fx-border-color: #d3d3d3; " +
+            "-fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 0 10 0 10;");
+    }
+
+    private Label createErrorLabel() {
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setFont(Font.font("Arial", 12));
+        return errorLabel;
     }
 
     private Button createMainButton(String text) {
@@ -132,23 +173,6 @@ public class SignupForm {
         sandTimeline.setCycleCount(Timeline.INDEFINITE);
         sandTimeline.setRate(1.2);
         sandTimeline.play();
-    }
-
-    private void createFloatingParticle(Pane pane, double heightFactor) {
-        double width = pane.getWidth();
-        double height = pane.getHeight();
-
-        Circle particle = new Circle(2, Color.web("#000000", 0.4));
-        particle.setCenterX(Math.random() * width);
-        particle.setCenterY(height * heightFactor);
-
-        pane.getChildren().add(particle);
-
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(3), particle);
-        tt.setByY(-height);
-        tt.setByX(Math.random() * 60 - 30);
-        tt.setOnFinished(ev -> pane.getChildren().remove(particle));
-        tt.play();
     }
 
     private void showAlert(String title, String message) {

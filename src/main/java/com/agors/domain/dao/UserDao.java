@@ -1,7 +1,7 @@
 package com.agors.domain.dao;
 
 import com.agors.domain.entity.User;
-import com.agors.infrastructure.utill.ConnectionManager;
+import com.agors.infrastructure.util.ConnectionManager;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,12 +10,13 @@ import java.util.List;
 public class UserDao {
 
     public void addUser(User user) {
-        String sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
         try (Connection conn = ConnectionManager.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getPasswordHash());
+            stmt.setString(4, user.getRole());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -53,13 +54,14 @@ public class UserDao {
     }
 
     public void updateUser(User user) {
-        String sql = "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
+        String sql = "UPDATE users SET username = ?, email = ?, password = ?, role = ? WHERE id = ?";
         try (Connection conn = ConnectionManager.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getPasswordHash());
-            stmt.setInt(4, user.getId());
+            stmt.setString(4, user.getRole());
+            stmt.setInt(5, user.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -83,6 +85,7 @@ public class UserDao {
         user.setUsername(rs.getString("username"));
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password"));
+        user.setRole(rs.getString("role"));
         return user;
     }
 }

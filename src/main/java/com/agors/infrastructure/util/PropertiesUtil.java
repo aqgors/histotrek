@@ -1,4 +1,4 @@
-package com.agors.infrastructure.utill;
+package com.agors.infrastructure.util;
 
 import java.io.IOException;
 import java.io.InputStream;

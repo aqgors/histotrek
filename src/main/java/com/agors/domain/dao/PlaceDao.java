@@ -1,7 +1,7 @@
 package com.agors.domain.dao;
 
 import com.agors.domain.entity.Place;
-import com.agors.infrastructure.utill.ConnectionManager;
+import com.agors.infrastructure.util.ConnectionManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
