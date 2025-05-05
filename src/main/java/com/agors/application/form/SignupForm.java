@@ -64,7 +64,7 @@ public class SignupForm {
                 user.setRole("USER");
 
                 new UserDao().addUser(user);
-                MessageBox.show("Успіх", "Реєстрація пройшла успішно!");
+                MessageBox.show("Success", "Registration was successful!");
 
                 usernameField.clear();
                 emailField.clear();
