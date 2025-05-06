@@ -1,4 +1,4 @@
-package com.agors.domain.dao;
+package com.agors.infrastructure.persistence.dao;
 
 import com.agors.domain.entity.User;
 import com.agors.infrastructure.util.ConnectionManager;

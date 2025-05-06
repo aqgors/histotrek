@@ -1,6 +1,6 @@
 package com.agors.domain.validation;
 
-import com.agors.domain.dao.UserDao;
+import com.agors.infrastructure.persistence.dao.UserDao;
 import com.agors.domain.entity.User;
 import com.agors.infrastructure.util.PasswordUtil;
 

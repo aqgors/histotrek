@@ -2,8 +2,7 @@ package com.agors.application.form;
 
 import com.agors.domain.entity.User;
 import com.agors.domain.validation.LoginValidator;
-import com.agors.infrastructure.util.PasswordUtil;
-import com.agors.domain.dao.UserDao;
+import com.agors.infrastructure.persistence.dao.UserDao;
 import com.agors.infrastructure.message.MessageBox;
 
 import javafx.animation.*;
@@ -38,11 +37,10 @@ public class LoginForm {
 
         Button loginButton = createMainButton("Log in");
         loginButton.setOnAction(e -> {
-
             loginError.setText("");
             passwordError.setText("");
 
-            Map<String, String> errors = LoginValidator.validate(
+            var errors = LoginValidator.validate(
                 loginField.getText(),
                 passwordField.getText()
             );
@@ -54,9 +52,12 @@ public class LoginForm {
 
                 User user = new UserDao()
                     .getByUsernameOrEmail(loginField.getText());
+
                 MessageBox.show("Success", "Welcome, " + user.getUsername() + "!");
+
                 stage.close();
-                previousStage.show();
+
+                new UserForm().start(previousStage, user.getId());
             }
         });
 
