@@ -119,7 +119,7 @@ public class UserForm {
         ContextMenu menu = new ContextMenu();
         MenuItem settings = new MenuItem("Settings");
         MenuItem logout = new MenuItem("Logout");
-        settings.setOnAction(e -> {/* open settings */});
+        settings.setOnAction(e -> new SettingsForm(primaryStage).show(new Stage()));
         logout.setOnAction(e -> {
             primaryStage.hide();
             new MenuScreen().show(primaryStage);
