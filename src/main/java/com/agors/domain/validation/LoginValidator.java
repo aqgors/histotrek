@@ -1,6 +1,6 @@
 package com.agors.domain.validation;
 
-import com.agors.infrastructure.persistence.dao.UserDao;
+import com.agors.infrastructure.persistence.impl.UserDaoImpl;
 import com.agors.domain.entity.User;
 import com.agors.infrastructure.util.PasswordUtil;
 
@@ -25,7 +25,7 @@ public class LoginValidator {
         }
 
         if (errors.isEmpty()) {
-            UserDao dao = new UserDao();
+            UserDaoImpl dao = new UserDaoImpl();
             User user = dao.getByUsernameOrEmail(loginOrEmail);
 
             if (user == null) {

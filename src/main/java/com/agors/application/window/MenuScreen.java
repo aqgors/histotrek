@@ -12,7 +12,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -35,15 +38,15 @@ public class MenuScreen {
         Button loginButton = createAnimatedButton("🔐 Log in");
         loginButton.setOnAction(e -> {
             Stage loginStage = new Stage();
-            new LoginForm().show(loginStage, stage);
             stage.hide();
+            new LoginForm().show(loginStage, stage);
         });
 
         Button signupButton = createAnimatedButton("📝 Sign up");
         signupButton.setOnAction(e -> {
             Stage signupStage = new Stage();
-            new SignupForm().show(signupStage, stage);
             stage.hide();
+            new SignupForm().show(signupStage, stage);
         });
 
         Button guestButton = createAnimatedButton("👤 Log in as a guest");
@@ -83,6 +86,13 @@ public class MenuScreen {
         sandPane.prefWidthProperty().bind(scene.widthProperty());
         sandPane.prefHeightProperty().bind(scene.heightProperty());
 
+        scene.setOnKeyPressed(evt -> {
+            if (evt.getCode() == KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
+        stage.setFullScreenExitHint("");
+
         stage.setScene(scene);
         stage.setTitle("Histotrek");
         stage.setMinWidth(800);
@@ -104,7 +114,6 @@ public class MenuScreen {
 
         button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
         button.setOnMouseExited(e -> button.setStyle(baseStyle));
-
         button.setEffect(new DropShadow(8, Color.rgb(0, 0, 0, 0.15)));
 
         return button;
@@ -131,5 +140,4 @@ public class MenuScreen {
         sandTimeline.setRate(1.2);
         sandTimeline.play();
     }
-
 }

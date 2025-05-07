@@ -1,15 +1,18 @@
 package com.agors.application.form;
 
+import com.agors.application.window.MessageBox;
 import com.agors.domain.entity.User;
 import com.agors.domain.validation.LoginValidator;
-import com.agors.infrastructure.persistence.dao.UserDao;
-import com.agors.infrastructure.message.MessageBox;
-
-import javafx.animation.*;
-import javafx.geometry.*;
+import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -18,176 +21,138 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.util.Map;
-
 public class LoginForm {
 
-    public void show(Stage stage, Stage previousStage) {
-        VBox formBox = createFormLayout();
+    public void show(Stage stage, Stage owner) {
 
-        Text titleLabel = createTitle("Log in");
+        stage.setFullScreen(owner.isFullScreen());
+        stage.setFullScreenExitHint("");
 
-        TextField loginField = createField("Username or Email");
-        Label loginError = createErrorLabel();
+        TextField loginField = styledField("Username or Email");
+        PasswordField pwField   = styledField("Password");
 
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Password");
-        styleField(passwordField);
-        Label passwordError = createErrorLabel();
+        Label loginErr = styledError();
+        Label pwErr    = styledError();
 
-        Button loginButton = createMainButton("Log in");
-        loginButton.setOnAction(e -> {
-            loginError.setText("");
-            passwordError.setText("");
-
-            var errors = LoginValidator.validate(
-                loginField.getText(),
-                passwordField.getText()
-            );
-
-            loginError.setText(errors.getOrDefault("login", ""));
-            passwordError.setText(errors.getOrDefault("password", ""));
-
-            if (errors.isEmpty()) {
-
-                User user = new UserDao()
-                    .getByUsernameOrEmail(loginField.getText());
-
-                MessageBox.show("Success", "Welcome, " + user.getUsername() + "!");
-
-                stage.close();
-
-                new UserForm().start(previousStage, user.getId());
-            }
-        });
-
-        Button backButton = createBorderedButton("Back");
-        backButton.setOnAction(e -> {
-            stage.close();
-            previousStage.show();
-        });
-
-        VBox fields = new VBox(8,
-            loginField, loginError,
-            passwordField, passwordError,
-            loginButton, backButton
+        Button loginBtn = styledButton("Log in", "-fx-background-color:#c2b280;", e ->
+            handleLogin(stage, owner, loginField, pwField, loginErr, pwErr)
         );
-        fields.setAlignment(Pos.CENTER);
+        Button backBtn = styledButton("Back", "-fx-background-color:transparent;", e -> {
+            owner.setFullScreen(stage.isFullScreen());
+            stage.close(); owner.show();
+        });
 
-        formBox.getChildren().addAll(titleLabel, fields);
+        VBox form = new VBox(20,
+            title("Log in"),
+            loginField, loginErr,
+            pwField, pwErr,
+            loginBtn, backBtn
+        );
+        form.setAlignment(Pos.CENTER);
+        form.setPadding(new Insets(40));
 
-        Pane animationLayer = new Pane();
-        animationLayer.setMouseTransparent(true);
-        playSandAnimation(animationLayer);
+        Pane sand = new Pane();
+        sand.setMouseTransparent(true);
+        animateSand(sand);
 
-        StackPane root = new StackPane(animationLayer, formBox);
+        StackPane root = new StackPane(sand, form);
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);");
 
         Scene scene = new Scene(root, 800, 600);
-        animationLayer.prefWidthProperty().bind(scene.widthProperty());
-        animationLayer.prefHeightProperty().bind(scene.heightProperty());
+        bindSize(sand, scene);
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.F11) stage.setFullScreen(!stage.isFullScreen());
+        });
 
         stage.setScene(scene);
-        stage.setTitle("Histotrek");
+        stage.setTitle("Histotrek – Login");
         stage.setMinWidth(800);
         stage.setMinHeight(600);
         stage.show();
-        root.requestFocus();
+        form.requestFocus();
     }
 
-    private VBox createFormLayout() {
-        VBox vbox = new VBox(20);
-        vbox.setPadding(new Insets(40));
-        vbox.setAlignment(Pos.CENTER);
-        return vbox;
+    private void handleLogin(Stage stage, Stage owner,
+        TextField lf, PasswordField pf,
+        Label e1, Label e2) {
+        e1.setText(""); e2.setText("");
+        var errs = LoginValidator.validate(lf.getText(), pf.getText());
+        e1.setText(errs.getOrDefault("login", ""));
+        e2.setText(errs.getOrDefault("password", ""));
+        if (errs.isEmpty()) {
+            User u = new UserDaoImpl().getByUsernameOrEmail(lf.getText());
+            MessageBox.show("Success", "Welcome, " + u.getUsername() + "!");
+            stage.close();
+            new UserForm().start(owner, u.getId(), stage.isFullScreen());
+        }
     }
 
-    private Text createTitle(String text) {
-        Text title = new Text(text);
-        title.setFont(Font.font("Arial", 32));
-        title.setFill(Color.web("#3e2723"));
-        title.setEffect(new DropShadow(3, Color.rgb(0, 0, 0, 0.15)));
-        return title;
+
+    private Text title(String t) {
+        Text x = new Text(t);
+        x.setFont(Font.font("Arial", 32));
+        x.setFill(Color.web("#3e2723"));
+        x.setEffect(new DropShadow(3, Color.rgb(0,0,0,0.15)));
+        return x;
     }
 
-    private TextField createField(String prompt) {
-        TextField field = new TextField();
-        field.setPromptText(prompt);
-        styleField(field);
-        return field;
+    private <T extends TextInputControl> T styledField(String prompt) {
+        T f = (prompt.contains("Password") ? (T)new PasswordField() : (T)new TextField());
+        f.setPromptText(prompt);
+        f.setMaxWidth(320);
+        f.setPrefHeight(45);
+        f.setFont(Font.font("Arial", 14));
+        f.setStyle("-fx-background-color:rgba(255,255,255,0.6);"
+            +"-fx-border-color:#d3d3d3;-fx-background-radius:8;"
+            +"-fx-border-radius:8;-fx-padding:0 10;");
+        return f;
     }
 
-    private void styleField(TextField field) {
-        field.setMaxWidth(320);
-        field.setPrefHeight(45);
-        field.setFont(Font.font("Arial", 14));
-        field.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.6); " +
-                "-fx-border-color: #d3d3d3; " +
-                "-fx-background-radius: 8; -fx-border-radius: 8; " +
-                "-fx-padding: 0 10;"
-        );
+    private Label styledError() {
+        Label l = new Label();
+        l.setTextFill(Color.RED);
+        l.setFont(Font.font(12));
+        l.setMaxWidth(320);
+        l.setWrapText(true);
+        return l;
     }
 
-    private Label createErrorLabel() {
-        Label lbl = new Label();
-        lbl.setTextFill(Color.RED);
-        lbl.setFont(Font.font("Arial", 12));
-        lbl.setMaxWidth(320);
-        lbl.setWrapText(true);
-        return lbl;
+    private Button styledButton(String text, String baseStyle,
+        javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
+        Button b = new Button(text);
+        b.setFont(Font.font("Arial",16));
+        b.setPrefSize(320,50);
+        String hover = baseStyle.contains("transparent")
+            ? "-fx-background-color:#f5e4c4;"
+            : "-fx-background-color:#a99e75;";
+        b.setStyle(baseStyle + " -fx-text-fill:black; -fx-background-radius:12;");
+        b.setOnMouseEntered(e -> b.setStyle(hover + " -fx-text-fill:white; -fx-background-radius:12;"));
+        b.setOnMouseExited(e  -> b.setStyle(baseStyle + " -fx-text-fill:black; -fx-background-radius:12;"));
+        b.setEffect(new DropShadow(5, Color.rgb(0,0,0,0.1)));
+        b.setOnAction(handler);
+        return b;
     }
 
-    private Button createMainButton(String text) {
-        Button btn = new Button(text);
-        btn.setPrefSize(320, 50);
-        btn.setFont(Font.font("Arial", 16));
-        btn.setStyle("-fx-background-color: #c2b280; -fx-text-fill: white; -fx-background-radius: 12;");
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #a99e75; -fx-text-fill: white; -fx-background-radius: 12;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #c2b280; -fx-text-fill: white; -fx-background-radius: 12;"));
-        btn.setEffect(new DropShadow(5, Color.rgb(0,0,0,0.1)));
-        return btn;
-    }
-
-    private Button createBorderedButton(String text) {
-        Button btn = new Button(text);
-        btn.setPrefSize(320, 50);
-        btn.setFont(Font.font("Arial", 16));
-        btn.setStyle(
-            "-fx-background-color: transparent; " +
-                "-fx-border-color: #c2b280; " +
-                "-fx-text-fill: #3e2723; " +
-                "-fx-background-radius: 12; -fx-border-radius: 12;"
-        );
-        btn.setOnMouseEntered(e -> btn.setStyle(
-            "-fx-background-color: #f5e4c4; " +
-                "-fx-border-color: #a99e75; -fx-text-fill: #3e2723; " +
-                "-fx-background-radius: 12; -fx-border-radius: 12;"
-        ));
-        btn.setOnMouseExited(e -> btn.setStyle(
-            "-fx-background-color: transparent; " +
-                "-fx-border-color: #c2b280; -fx-text-fill: #3e2723; " +
-                "-fx-background-radius: 12; -fx-border-radius: 12;"
-        ));
-        btn.setEffect(new DropShadow(5, Color.rgb(0,0,0,0.1)));
-        return btn;
-    }
-
-    private void playSandAnimation(Pane pane) {
+    private void animateSand(Pane p) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
-            double w = pane.getWidth(), h = pane.getHeight();
+            double w = p.getWidth(), h = p.getHeight();
             Circle c = new Circle(2, Color.web("#000000", 0.4));
-            c.setCenterX(Math.random() * w);
+            c.setCenterX(Math.random()*w);
             c.setCenterY(h);
-            pane.getChildren().add(c);
+            p.getChildren().add(c);
             TranslateTransition tt = new TranslateTransition(Duration.seconds(3), c);
             tt.setByY(-h);
-            tt.setByX(Math.random() * 60 - 30);
-            tt.setOnFinished(ev -> pane.getChildren().remove(c));
+            tt.setByX(Math.random()*60 - 30);
+            tt.setOnFinished(ev -> p.getChildren().remove(c));
             tt.play();
         }));
-        tl.setCycleCount(Animation.INDEFINITE);
+        tl.setCycleCount(Timeline.INDEFINITE);
         tl.setRate(1.2);
         tl.play();
+    }
+
+    private void bindSize(Pane p, Scene s) {
+        p.prefWidthProperty().bind(s.widthProperty());
+        p.prefHeightProperty().bind(s.heightProperty());
     }
 }

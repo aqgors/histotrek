@@ -1,6 +1,5 @@
 package com.agors.application.form;
 
-import com.agors.application.window.MenuScreen;
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -8,6 +7,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -23,12 +23,15 @@ public class SettingsForm {
         this.parentStage = parentStage;
     }
 
-    public void show(Stage stage) {
-        parentStage.close();
+    public void show(Stage settingsStage) {
+        parentStage.hide();
+        settingsStage.setFullScreen(parentStage.isFullScreen());
+        settingsStage.setFullScreenExitHint("");
 
         Button backBtn = createBackButton();
         backBtn.setOnAction(e -> {
-            stage.close();
+            settingsStage.close();
+            parentStage.setFullScreen(settingsStage.isFullScreen());
             parentStage.show();
         });
 
@@ -53,7 +56,7 @@ public class SettingsForm {
                 createFontSizeControl()
             ),
             createSection("Administration",
-                createStyledButton("Access the Citadel", e -> {
+                createStyledButton("Access the Citadel", ev -> {
                     Alert info = new Alert(Alert.AlertType.INFORMATION);
                     info.setTitle("Administration");
                     info.setHeaderText(null);
@@ -82,35 +85,38 @@ public class SettingsForm {
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
-        BorderPane root = new BorderPane();
+        BorderPane root = new BorderPane(scrollPane);
         root.setTop(topBar);
-        root.setCenter(scrollPane);
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);");
 
         Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setTitle("Settings");
-        stage.setMinWidth(800);
-        stage.setMinHeight(600);
-        stage.show();
+        // F11 = toggle full-screen на цьому вікні
+        scene.setOnKeyPressed(evt -> {
+            if (evt.getCode() == KeyCode.F11) {
+                settingsStage.setFullScreen(!settingsStage.isFullScreen());
+            }
+        });
+
+        settingsStage.setScene(scene);
+        settingsStage.setTitle("Settings");
+        settingsStage.setMinWidth(800);
+        settingsStage.setMinHeight(600);
+        settingsStage.show();
     }
 
     private VBox createSection(String heading, javafx.scene.Node... controls) {
         Text h = new Text(heading);
         h.setFont(Font.font("Arial", 20));
         h.setFill(Color.BLACK);
-        VBox box = new VBox(10);
-        box.getChildren().add(h);
-        for (javafx.scene.Node c : controls) {
-            box.getChildren().add(c);
-        }
+        VBox box = new VBox(10, h);
         box.setPadding(new Insets(10));
         box.setStyle(
-            "-fx-background-color: white; " +
-                "-fx-border-color: #d3d3d3; " +
-                "-fx-border-radius: 8; " +
-                "-fx-background-radius: 8;"
+            "-fx-background-color: white; "
+                + "-fx-border-color: #d3d3d3; "
+                + "-fx-border-radius: 8; "
+                + "-fx-background-radius: 8;"
         );
+        box.getChildren().addAll(controls);
         return box;
     }
 
@@ -148,19 +154,20 @@ public class SettingsForm {
         toggle.setCursor(Cursor.HAND);
         toggle.setStyle("-fx-background-color: #c2b280; -fx-text-fill: black; -fx-background-radius: 12;");
         toggle.setOnAction(e -> {
-            Scene s = toggle.getScene();
             if (toggle.isSelected()) {
                 toggle.setText("Light");
-                s.getRoot().setStyle("-fx-background-color: #2b2b2b;");
+                rootSetBackground(toggle, "#2b2b2b");
             } else {
                 toggle.setText("Dark");
-                s.getRoot().setStyle("-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);");
+                rootSetBackground(toggle, "linear-gradient(to bottom right, #fdf6e3, #e29264)");
             }
         });
 
-        HBox box = new HBox(10, lbl, toggle);
-        box.setAlignment(Pos.CENTER_LEFT);
-        return box;
+        return new HBox(10, lbl, toggle);
+    }
+
+    private void rootSetBackground(Control ctrl, String bg) {
+        ctrl.getScene().getRoot().setStyle("-fx-background-color: " + bg + ";");
     }
 
     private ChoiceBox<String> createLanguageChoice() {
@@ -192,12 +199,9 @@ public class SettingsForm {
         slider.valueProperty().addListener((obs, o, n) -> {
             int val = n.intValue();
             valueLabel.setText(String.valueOf(val));
-            // TODO: apply font size across the application
         });
 
-        HBox box = new HBox(10, lbl, slider, valueLabel);
-        box.setAlignment(Pos.CENTER_LEFT);
-        return box;
+        return new HBox(10, lbl, slider, valueLabel);
     }
 
     private Label createStyledLabel(String text) {
@@ -232,7 +236,7 @@ public class SettingsForm {
 
         ScaleTransition enter = new ScaleTransition(Duration.millis(150), circle);
         enter.setToX(1.1); enter.setToY(1.1);
-        ScaleTransition exit = new ScaleTransition(Duration.millis(150), circle);
+        ScaleTransition exit  = new ScaleTransition(Duration.millis(150), circle);
         exit.setToX(1.0); exit.setToY(1.0);
         btn.setOnMouseEntered(e -> enter.playFromStart());
         btn.setOnMouseExited(e -> exit.playFromStart());

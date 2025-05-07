@@ -1,7 +1,7 @@
 package com.agors.application.form;
 
 import com.agors.application.window.MenuScreen;
-import com.agors.infrastructure.persistence.dao.PlaceDao;
+import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.domain.entity.Place;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -34,13 +35,17 @@ public class GuestForm {
     private List<Place> allPlaces;
 
     public void start(Stage primaryStage) {
+        boolean wasFull = primaryStage.isFullScreen();
 
         HBox topBar = new HBox(10);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(10));
 
         Button backButton = createBackButton();
-        backButton.setOnAction(e -> new MenuScreen().show(primaryStage));
+        backButton.setOnAction(e -> {
+            primaryStage.setFullScreen(wasFull);
+            new MenuScreen().show(primaryStage);
+        });
 
         Label titleLabel = new Label("HISTOTREK");
         titleLabel.setFont(Font.font("Arial", 26));
@@ -60,15 +65,17 @@ public class GuestForm {
         Button loginButton = createActionButton("LOGIN");
         loginButton.setOnAction(e -> {
             Stage loginStage = new Stage();
-            new LoginForm().show(loginStage, primaryStage);
+            loginStage.setFullScreen(wasFull);
             primaryStage.hide();
+            new LoginForm().show(loginStage, primaryStage);
         });
 
         Button signupButton = createActionButton("SIGNUP");
         signupButton.setOnAction(e -> {
             Stage signupStage = new Stage();
-            new SignupForm().show(signupStage, primaryStage);
+            signupStage.setFullScreen(wasFull);
             primaryStage.hide();
+            new SignupForm().show(signupStage, primaryStage);
         });
 
         HBox authButtons = new HBox(10, loginButton, signupButton);
@@ -97,8 +104,16 @@ public class GuestForm {
         sandLayer.prefWidthProperty().bind(scene.widthProperty());
         sandLayer.prefHeightProperty().bind(scene.heightProperty());
 
+        scene.setOnKeyPressed(evt -> {
+            if (evt.getCode() == KeyCode.F11) {
+                primaryStage.setFullScreen(!primaryStage.isFullScreen());
+            }
+        });
+        primaryStage.setFullScreenExitHint("");
+
         primaryStage.setScene(scene);
         primaryStage.setTitle("Histotrek");
+        primaryStage.setFullScreen(wasFull);
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
         primaryStage.show();
@@ -193,7 +208,7 @@ public class GuestForm {
     }
 
     private void loadCards() {
-        allPlaces = new PlaceDao().findAll();
+        allPlaces = new PlaceDaoImpl().findAll();
         showCards(allPlaces);
     }
 

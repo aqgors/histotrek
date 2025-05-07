@@ -1,4 +1,4 @@
-package com.agors.infrastructure.message;
+package com.agors.application.window;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -54,7 +54,6 @@ public class MessageBox {
         dialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         scene.setFill(Color.TRANSPARENT);
 
-        // Анімація появи
         box.setScaleX(0.85);
         box.setScaleY(0.85);
         box.setOpacity(0);

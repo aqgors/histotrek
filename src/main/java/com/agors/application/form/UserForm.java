@@ -1,13 +1,12 @@
 package com.agors.application.form;
 
 import com.agors.application.window.MenuScreen;
+import com.agors.application.form.SettingsForm;
 import com.agors.domain.entity.Place;
 import com.agors.domain.entity.Favorite;
-import com.agors.infrastructure.persistence.dao.PlaceDao;
-import com.agors.infrastructure.persistence.dao.FavoriteDao;
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
-import javafx.animation.Timeline;
+import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
+import com.agors.infrastructure.persistence.impl.FavoriteDaoImpl;
+import javafx.animation.*;
 import javafx.animation.KeyFrame;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,13 +14,14 @@ import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -31,25 +31,27 @@ import java.util.stream.Collectors;
 
 public class UserForm {
 
-    private final PlaceDao placeDao = new PlaceDao();
-    private final FavoriteDao favoriteDao = new FavoriteDao();
+    private final PlaceDaoImpl placeDaoImpl = new PlaceDaoImpl();
+    private final FavoriteDaoImpl favoriteDaoImpl = new FavoriteDaoImpl();
 
     private List<Place> allPlaces;
     private int currentUserId;
     private FlowPane allFlow;
     private FlowPane favFlow;
-
     private Stage primaryStage;
 
-    public void start(Stage primaryStage, int userId) {
-        this.primaryStage = primaryStage;
+    public void start(Stage stage, int userId, boolean isFullScreen) {
+        this.primaryStage = stage;
         this.currentUserId = userId;
-        allPlaces = placeDao.findAll();
+        this.primaryStage.setFullScreen(isFullScreen);
+        this.primaryStage.setFullScreenExitHint("");
+
+        allPlaces = placeDaoImpl.findAll();
 
         HBox topBar = createTopBar();
 
         TabPane tabPane = new TabPane();
-        Tab allTab = new Tab("All"); allTab.setClosable(false);
+        Tab allTab = new Tab("All");   allTab.setClosable(false);
         Tab favTab = new Tab("Favorites"); favTab.setClosable(false);
 
         allFlow = createFlow();
@@ -66,7 +68,7 @@ public class UserForm {
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             searchField.setText("");
             if (n == allTab) loadCards(allFlow, allPlaces);
-            else loadCards(favFlow, getFavoritePlaces());
+            else              loadCards(favFlow, getFavoritePlaces());
         });
         searchField.textProperty().addListener((obs, o, n) -> {
             if (tabPane.getSelectionModel().getSelectedItem() == allTab)
@@ -77,6 +79,7 @@ public class UserForm {
 
         BorderPane root = new BorderPane(tabPane);
         root.setTop(topBar);
+
         Pane sand = new Pane(); sand.setMouseTransparent(true);
         playSandAnimation(sand);
         StackPane stack = new StackPane(sand, root);
@@ -85,6 +88,12 @@ public class UserForm {
         Scene scene = new Scene(stack, 800, 600);
         sand.prefWidthProperty().bind(scene.widthProperty());
         sand.prefHeightProperty().bind(scene.heightProperty());
+
+        scene.setOnKeyPressed(evt -> {
+            if (evt.getCode() == KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Histotrek");
@@ -118,11 +127,16 @@ public class UserForm {
 
         ContextMenu menu = new ContextMenu();
         MenuItem settings = new MenuItem("Settings");
-        MenuItem logout = new MenuItem("Logout");
-        settings.setOnAction(e -> new SettingsForm(primaryStage).show(new Stage()));
+        MenuItem logout   = new MenuItem("Logout");
+        settings.setOnAction(e -> {
+            Stage settingsStage = new Stage();
+            new SettingsForm(primaryStage).show(settingsStage);
+        });
         logout.setOnAction(e -> {
-            primaryStage.hide();
+            boolean fs = primaryStage.isFullScreen();
+            primaryStage.close();
             new MenuScreen().show(primaryStage);
+            primaryStage.setFullScreen(fs);
         });
         menu.getItems().addAll(settings, logout);
         profile.setOnMouseClicked(e -> menu.show(profile, Side.BOTTOM, 0, 0));
@@ -151,9 +165,9 @@ public class UserForm {
     }
 
     private List<Place> getFavoritePlaces() {
-        return favoriteDao.findByUser(currentUserId).stream()
+        return favoriteDaoImpl.findByUser(currentUserId).stream()
             .map(Favorite::getPlaceId)
-            .map(placeDao::findById)
+            .map(placeDaoImpl::findById)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -172,10 +186,10 @@ public class UserForm {
         card.setPadding(new Insets(10));
         card.setAlignment(Pos.TOP_LEFT);
         card.setPrefWidth(250);
-        String base = "-fx-background-color: white; -fx-border-color: #d3d3d3; "
-            +"-fx-border-radius: 8; -fx-background-radius: 8; "
-            +"-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0, 0, 2);";
-        card.setStyle(base);
+        String baseStyle = "-fx-background-color: white; -fx-border-color: #d3d3d3; "
+            + "-fx-border-radius: 8; -fx-background-radius: 8; "
+            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0, 0, 2)";
+        card.setStyle(baseStyle);
 
         try {
             ImageView img = new ImageView(new Image(place.getImageUrl(), true));
@@ -184,9 +198,9 @@ public class UserForm {
             card.getChildren().add(img);
         } catch (Exception ignored) {}
 
-        Label title = new Label(place.getName());
-        title.setFont(Font.font(16));
-        title.setTextFill(Color.web("#1a3e2b"));
+        Label nameLbl = new Label(place.getName());
+        nameLbl.setFont(Font.font(16));
+        nameLbl.setTextFill(Color.web("#1a3e2b"));
 
         HBox stars = new HBox(2);
         for (int i = 0; i < 5; i++) {
@@ -195,40 +209,37 @@ public class UserForm {
             s.setTextFill(Color.GOLD);
             stars.getChildren().add(s);
         }
-        card.getChildren().addAll(title, stars);
 
         VBox infoBox = new VBox(6);
         infoBox.setVisible(false);
-        Label loc = new Label("🌍 " + place.getCountry()); loc.setFont(Font.font(12)); loc.setTextFill(Color.web("#555"));
-        Label era = new Label("🕰 " + place.getEra()); era.setFont(Font.font(12)); era.setTextFill(Color.web("#555"));
-        Label desc = new Label(place.getDescription()); desc.setWrapText(true); desc.setFont(Font.font(12));
-        infoBox.getChildren().addAll(loc, era, desc);
-        card.getChildren().add(infoBox);
+        Label locLbl = new Label("🌍 " + place.getCountry()); locLbl.setFont(Font.font(12)); locLbl.setTextFill(Color.web("#555"));
+        Label eraLbl = new Label("🕰 " + place.getEra()); eraLbl.setFont(Font.font(12)); eraLbl.setTextFill(Color.web("#555"));
+        Label descLbl = new Label(place.getDescription()); descLbl.setWrapText(true); descLbl.setFont(Font.font(12));
+        infoBox.getChildren().addAll(locLbl, eraLbl, descLbl);
 
-        card.setOnMouseEntered(e -> {
-            hoverCard(card, true);
-            infoBox.setVisible(true);
-        });
-        card.setOnMouseExited(e -> {
-            hoverCard(card, false);
-            infoBox.setVisible(false);
-        });
+        card.getChildren().addAll(nameLbl, stars, infoBox);
+        card.setOnMouseEntered(e -> { hoverCard(card, true); infoBox.setVisible(true); });
+        card.setOnMouseExited(e -> { hoverCard(card, false); infoBox.setVisible(false); });
 
         return card;
     }
 
     private void hoverCard(VBox card, boolean hover) {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
-        st.setToX(hover ? 1.05 : 1.0); st.setToY(hover ? 1.05 : 1.0); st.play();
-        String bg = hover ? "#fefae0" : "white";
-        double op = hover ? 0.2 : 0.1;
-        int rad = hover ? 8 : 6;
-        int blur = hover ? 4 : 2;
-        card.setStyle(
-            "-fx-background-color: " + bg + "; -fx-border-color: #d3d3d3; "
-                +"-fx-border-radius: 8; -fx-background-radius: 8; "
-                +"-fx-effect: dropshadow(gaussian, rgba(0,0,0," + op + "), " + rad + ",0,0," + blur + ");"
-        );
+        st.setToX(hover ? 1.05 : 1.0);
+        st.setToY(hover ? 1.05 : 1.0);
+        st.play();
+
+        String bgColor = hover ? "#fefae0" : "white";
+        double opacity   = hover ? 0.2 : 0.1;
+        int    radius    = hover ? 8 : 6;
+        int    blur      = hover ? 4 : 2;
+        String effect = String.format("dropshadow(gaussian, rgba(0,0,0,%.2f), %d, 0, 0, %d)", opacity, radius, blur);
+
+        card.setStyle("-fx-background-color: " + bgColor + "; "
+            + "-fx-border-color: #d3d3d3; "
+            + "-fx-border-radius: 8; -fx-background-radius: 8; "
+            + "-fx-effect: " + effect + ";");
     }
 
     private void playSandAnimation(Pane pane) {
@@ -238,9 +249,12 @@ public class UserForm {
             c.setCenterY(pane.getHeight());
             pane.getChildren().add(c);
             TranslateTransition tt = new TranslateTransition(Duration.seconds(4), c);
-            tt.setByY(-pane.getHeight()); tt.setByX(Math.random() * 60 - 30);
-            tt.setOnFinished(ev -> pane.getChildren().remove(c)); tt.play();
+            tt.setByY(-pane.getHeight());
+            tt.setByX(Math.random() * 60 - 30);
+            tt.setOnFinished(ev -> pane.getChildren().remove(c));
+            tt.play();
         }));
-        tl.setCycleCount(Timeline.INDEFINITE); tl.play();
+        tl.setCycleCount(Animation.INDEFINITE);
+        tl.play();
     }
 }

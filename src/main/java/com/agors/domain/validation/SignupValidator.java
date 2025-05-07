@@ -1,6 +1,6 @@
 package com.agors.domain.validation;
 
-import com.agors.infrastructure.persistence.dao.UserDao;
+import com.agors.infrastructure.persistence.impl.UserDaoImpl;
 import com.agors.domain.entity.User;
 
 import java.util.HashMap;
@@ -30,8 +30,7 @@ public class SignupValidator {
             errors.put("password", "Password must be at least 6 characters");
         }
 
-        // Перевірка на унікальність
-        UserDao dao = new UserDao();
+        UserDaoImpl dao = new UserDaoImpl();
         List<User> users = dao.getAllUsers();
         for (User u : users) {
             if (u.getUsername().equals(username)) {
