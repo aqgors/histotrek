@@ -12,8 +12,15 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Менеджер пулу підключень. При getConnection() повертає proxy,
- * який при виклику close() повертає з'єднання в пул, а не реально закриває його.
+ * Менеджер пулу з'єднань до бази даних.
+ * <p>
+ * Ініціалізує фіксований пул з'єднань на основі налаштувань із властивостей,
+ * повертає проксі-з'єднання, яке при виклику close() повертає об'єкт у пул,
+ * а не закриває реальне з'єднання.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
  */
 public class ConnectionManager {
 
@@ -23,7 +30,9 @@ public class ConnectionManager {
     private static final String POOL_SIZE_KEY = "db.pool.size";
     private static final int    DEFAULT_SIZE  = 5;
 
+    /** Черга доступних проксі-з'єднань */
     private static final BlockingQueue<Connection> pool;
+    /** Список реальних з'єднань для закриття при завершенні */
     private static final List<Connection>          realConnections = new ArrayList<>();
 
     static {
@@ -39,6 +48,10 @@ public class ConnectionManager {
 
     private ConnectionManager() {}
 
+    /**
+     * Завантажує JDBC-драйвер.
+     * @throws RuntimeException якщо драйвер не знайдено
+     */
     private static void loadDriver() {
         try {
             Class.forName("org.postgresql.Driver");
@@ -47,6 +60,10 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Ініціалізує пул з'єднань заданого розміру.
+     * @param size кількість з'єднань у пулі
+     */
     private static void initPool(int size) {
         for (int i = 0; i < size; i++) {
             Connection real = openNew();
@@ -55,7 +72,6 @@ public class ConnectionManager {
                 new Class[]{ Connection.class },
                 (proxyConn, method, args) -> {
                     if ("close".equals(method.getName())) {
-                        // замість закриття — повертаємо в пул
                         pool.offer((Connection) proxyConn);
                         ConnectionHolder.clearConnection();
                         return null;
@@ -69,6 +85,11 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Відкриває нове реальне з'єднання за налаштуваннями з властивостей.
+     * @return екземпляр Connection
+     * @throws RuntimeException у разі помилки підключення
+     */
     private static Connection openNew() {
         try {
             String url  = PropertiesUtil.get(URL_KEY);
@@ -84,7 +105,9 @@ public class ConnectionManager {
     }
 
     /**
-     * Повернути проксі-з'єднання з пулу і прив'язати його до потоку.
+     * Повертає проксі-з'єднання з пулу та прив'язує його до поточного потоку.
+     * @return екземпляр Connection
+     * @throws RuntimeException якщо процес очікування перервано
      */
     public static Connection getConnection() {
         try {
@@ -97,7 +120,9 @@ public class ConnectionManager {
         }
     }
 
-    /** Закриває всі реальні з'єднання при завершенні програми */
+    /**
+     * Закриває всі реальні з'єднання при завершенні програми.
+     */
     public static void shutdown() {
         for (Connection real : realConnections) {
             try { real.close(); }

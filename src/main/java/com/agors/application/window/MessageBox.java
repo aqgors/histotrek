@@ -7,16 +7,37 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.*;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+/**
+ * Універсальне модальне вікно для відображення повідомлень користувачу.
+ * <p>
+ * Показує заголовок та текст повідомлення з кнопкою "OK",
+ * з плавною анімацією появи та масштабування.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class MessageBox {
 
+    /**
+     * Відображає модальне вікно з повідомленням.
+     * <p>
+     * Вікно блокує родительську сцену до закриття,
+     * показує заголовок та текст повідомлення,
+     * застосовує анімацію появи.</p>
+     *
+     * @param title   заголовок вікна повідомлення
+     * @param message текст повідомлення для користувача
+     */
     public static void show(String title, String message) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -51,9 +72,10 @@ public class MessageBox {
 
         Scene scene = new Scene(box, 350, 200);
         dialog.setScene(scene);
-        dialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+        dialog.initStyle(StageStyle.TRANSPARENT);
         scene.setFill(Color.TRANSPARENT);
 
+        // Налаштування початкової трансформації для анімації
         box.setScaleX(0.85);
         box.setScaleY(0.85);
         box.setOpacity(0);

@@ -29,11 +29,29 @@ import javafx.util.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Форма гостьового режиму без авторизації.
+ * <p>
+ * Відображає список всіх історичних місць, дозволяє пошук,
+ * навігацію назад до головного меню, а також перехід на форми
+ * входу та реєстрації для виконання авторизації.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class GuestForm {
 
+    /** Контейнер для карток місць */
     private FlowPane cardsFlow;
+    /** Список всіх місць, завантажених із БД */
     private List<Place> allPlaces;
 
+    /**
+     * Ініціалізує та показує гостьову форму.
+     *
+     * @param primaryStage головне вікно програми
+     */
     public void start(Stage primaryStage) {
         boolean wasFull = primaryStage.isFullScreen();
 
@@ -121,6 +139,11 @@ public class GuestForm {
         loadCards();
     }
 
+    /**
+     * Створює кнопку для повернення назад у головне меню.
+     *
+     * @return стилізована кнопка Back
+     */
     private Button createBackButton() {
 
         StackPane circle = new StackPane();
@@ -155,6 +178,12 @@ public class GuestForm {
         return btn;
     }
 
+    /**
+     * Створює кнопку дії (LOGIN або SIGNUP) з hover-ефектом.
+     *
+     * @param text текст на кнопці
+     * @return налаштований Button
+     */
     private Button createActionButton(String text) {
         Button btn = new Button(text);
         btn.setFont(Font.font("Arial", 14));
@@ -196,6 +225,11 @@ public class GuestForm {
         return btn;
     }
 
+    /**
+     * Обгортає FlowPane з картками у ScrollPane.
+     *
+     * @return VBox, що містить прокручуваний контейнер карток
+     */
     private VBox wrapCards() {
         cardsFlow = new FlowPane(20, 20);
         cardsFlow.setPadding(new Insets(20));
@@ -207,16 +241,30 @@ public class GuestForm {
         return new VBox(scrollPane);
     }
 
+    /**
+     * Завантажує всі місця з БД та відображає їх.
+     */
     private void loadCards() {
         allPlaces = new PlaceDaoImpl().findAll();
         showCards(allPlaces);
     }
 
+    /**
+     * Відображає список місць у вигляді карток.
+     *
+     * @param places список місць
+     */
     private void showCards(List<Place> places) {
         cardsFlow.getChildren().clear();
         places.forEach(p -> cardsFlow.getChildren().add(createCard(p)));
     }
 
+    /**
+     * Фільтрує список місць за запитом користувача
+     * та оновлює картки.
+     *
+     * @param query рядок пошуку
+     */
     private void filterPlaces(String query) {
         String lower = query.toLowerCase();
         List<Place> filtered = allPlaces.stream()
@@ -227,6 +275,12 @@ public class GuestForm {
         showCards(filtered);
     }
 
+    /**
+     * Створює картку з інформацією про місце.
+     *
+     * @param place об'єкт Place
+     * @return VBox-картка з зображенням, назвою, локацією та описом
+     */
     private VBox createCard(Place place) {
         VBox card = new VBox(10);
         card.setPadding(new Insets(10));
@@ -272,6 +326,12 @@ public class GuestForm {
         return card;
     }
 
+    /**
+     * Анімація наведення на картку: зміна масштабу та стилю.
+     *
+     * @param card  картка для анімації
+     * @param hover true якщо мишка над карткою
+     */
     private void hoverCard(VBox card, boolean hover) {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
         st.setToX(hover ? 1.05 : 1.0);
@@ -287,6 +347,11 @@ public class GuestForm {
         );
     }
 
+    /**
+     * Запускає фонову анімацію падаючого піску.
+     *
+     * @param sandPane Pane, на якому анімуються частинки
+     */
     private void playSandAnimation(Pane sandPane) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = sandPane.getWidth(), h = sandPane.getHeight();

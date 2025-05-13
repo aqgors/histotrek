@@ -10,15 +10,31 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Ініціалізатор БД: виконує DDL та DML скрипти з ресурсів.
- * Викликати вручну на старті програми.
+ * Ініціалізатор бази даних для застосунку.
+ * <p>
+ * Виконує DDL та за потреби DML скрипти з ресурсів для створення схеми
+ * та початкового заповнення даними. Викликати на старті програми.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
  */
 public class PersistenceInitializer {
 
+    /** Шлях до SQL-файлу створення схеми */
     private static final String DDL_PATH = "ddl_postgresql.sql";
+    /** Шлях до SQL-файлу початкових даних */
     private static final String DML_PATH = "dml_postgresql.sql";
 
-    /** Виконує створення схеми та наповнення даними */
+    /**
+     * Виконує ініціалізацію бази даних: створює схему та наповнює дані.
+     * <p>
+     * Встановлює закриття транзакції вручну, виконує DDL,
+     * а якщо налаштовано, виконує DML, потім комітить.
+     * </p>
+     *
+     * @throws RuntimeException у разі помилки SQL або читання ресурсів
+     */
     public static void init() {
         try (Connection conn = ConnectionManager.getConnection();
             Statement stmt  = conn.createStatement()) {
@@ -32,10 +48,17 @@ public class PersistenceInitializer {
             conn.commit();
 
         } catch (SQLException e) {
-            throw new RuntimeException("DB initialization failed", e);
+            throw new RuntimeException("Ініціалізація БД не вдалася", e);
         }
     }
 
+    /**
+     * Зчитує SQL-скрипт з ресурсу та повертає як рядок.
+     *
+     * @param resource ім'я файлу ресурсу в клас-шляху
+     * @return вміст SQL-файлу як рядок
+     * @throws RuntimeException у разі помилки читання
+     */
     private static String readSql(String resource) {
         try (BufferedReader reader = new BufferedReader(
             new InputStreamReader(
@@ -48,7 +71,7 @@ public class PersistenceInitializer {
         )) {
             return reader.lines().collect(Collectors.joining("\n"));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot read SQL resource: " + resource, e);
+            throw new RuntimeException("Не вдалося прочитати ресурс SQL: " + resource, e);
         }
     }
 }

@@ -8,8 +8,24 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Реалізація інтерфейсу PlaceDao для роботи з таблицею place.
+ * <p>
+ * Забезпечує додавання, отримання, оновлення та видалення об'єктів Place
+ * у базі даних за допомогою JDBC.</p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class PlaceDaoImpl implements PlaceDao {
 
+    /**
+     * Додає новий запис місця до таблиці place.
+     *
+     * @param place об'єкт Place з інформацією про місце
+     * @return збережений об'єкт Place з встановленим id
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public Place add(Place place) {
         String sql = "INSERT INTO place (name, country, era, description, image_url) VALUES (?, ?, ?, ?, ?)";
@@ -27,11 +43,17 @@ public class PlaceDaoImpl implements PlaceDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error inserting place: " + place, e);
+            throw new RuntimeException("Не вдалося додати місце: " + place, e);
         }
         return place;
     }
 
+    /**
+     * Повертає список усіх місць із таблиці place.
+     *
+     * @return список об'єктів Place
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public List<Place> findAll() {
         List<Place> places = new ArrayList<>();
@@ -43,11 +65,18 @@ public class PlaceDaoImpl implements PlaceDao {
                 places.add(mapRowToPlace(rs));
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error loading all places", e);
+            throw new RuntimeException("Не вдалося завантажити місця", e);
         }
         return places;
     }
 
+    /**
+     * Знаходить місце за його унікальним ідентифікатором.
+     *
+     * @param id унікальний ідентифікатор місця
+     * @return знайдений об'єкт Place або null, якщо не знайдено
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public Place findById(int id) {
         String sql = "SELECT id, name, country, era, description, image_url FROM place WHERE id = ?";
@@ -60,11 +89,17 @@ public class PlaceDaoImpl implements PlaceDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding place by id=" + id, e);
+            throw new RuntimeException("Не вдалося знайти місце з id=" + id, e);
         }
         return null;
     }
 
+    /**
+     * Оновлює дані існуючого місця у таблиці place.
+     *
+     * @param place об'єкт Place з оновленими даними
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public void update(Place place) {
         String sql = "UPDATE place SET name = ?, country = ?, era = ?, description = ?, image_url = ? WHERE id = ?";
@@ -78,10 +113,16 @@ public class PlaceDaoImpl implements PlaceDao {
             stmt.setInt(6, place.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error updating place: " + place, e);
+            throw new RuntimeException("Не вдалося оновити місце: " + place, e);
         }
     }
 
+    /**
+     * Видаляє місце за його унікальним ідентифікатором.
+     *
+     * @param id унікальний ідентифікатор місця
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public void remove(int id) {
         String sql = "DELETE FROM place WHERE id = ?";
@@ -90,10 +131,17 @@ public class PlaceDaoImpl implements PlaceDao {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting place id=" + id, e);
+            throw new RuntimeException("Не вдалося видалити місце з id=" + id, e);
         }
     }
 
+    /**
+     * Допоміжний метод для мапінгу поточного рядка ResultSet в об'єкт Place.
+     *
+     * @param rs ResultSet з полями id, name, country, era, description, image_url
+     * @return екземпляр Place з даними з рядка
+     * @throws SQLException у разі помилки доступу до полів ResultSet
+     */
     private Place mapRowToPlace(ResultSet rs) throws SQLException {
         Place p = new Place();
         p.setId(rs.getInt("id"));

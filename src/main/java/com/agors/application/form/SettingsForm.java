@@ -1,6 +1,13 @@
 package com.agors.application.form;
 
+import com.agors.application.window.MessageBox;
+import com.agors.domain.entity.User;
+import com.agors.domain.validation.LoginValidator;
+import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -10,19 +17,42 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Форма налаштувань користувача.
+ * <p>
+ * Відображає різні секції налаштувань (Профіль, Переваги, Адміністрування,
+ * Приватність, Інформація, Допомога), дозволяє змінювати тему, мову,
+ * розмір шрифту та інші опції, а також повернутись назад.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class SettingsForm {
 
+    /** Батьківське вікно (MenuScreen), до якого повернемось */
     private final Stage parentStage;
 
+    /**
+     * Конструктор форми налаштувань.
+     *
+     * @param parentStage головне вікно програми
+     */
     public SettingsForm(Stage parentStage) {
         this.parentStage = parentStage;
     }
 
+    /**
+     * Показує вікно налаштувань і приховує батьківське.
+     *
+     * @param settingsStage новий Stage для відображення налаштувань
+     */
     public void show(Stage settingsStage) {
         parentStage.hide();
         settingsStage.setFullScreen(parentStage.isFullScreen());
@@ -90,7 +120,7 @@ public class SettingsForm {
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);");
 
         Scene scene = new Scene(root, 800, 600);
-        // F11 = toggle full-screen на цьому вікні
+        // F11 для перемикання повноекранного режиму
         scene.setOnKeyPressed(evt -> {
             if (evt.getCode() == KeyCode.F11) {
                 settingsStage.setFullScreen(!settingsStage.isFullScreen());
@@ -104,6 +134,13 @@ public class SettingsForm {
         settingsStage.show();
     }
 
+    /**
+     * Створює розділ налаштувань із заголовком та контролами.
+     *
+     * @param heading  назва секції
+     * @param controls елементи інтерфейсу для секції
+     * @return VBox, що містить секцію
+     */
     private VBox createSection(String heading, javafx.scene.Node... controls) {
         Text h = new Text(heading);
         h.setFont(Font.font("Arial", 20));
@@ -120,10 +157,13 @@ public class SettingsForm {
         return box;
     }
 
-    private Button createStyledButton(String text) {
-        return createStyledButton(text, null);
-    }
-
+    /**
+     * Створює стилізовану кнопку з базовим та hover-ефектом.
+     *
+     * @param text    текст на кнопці
+     * @param handler (опційно) обробник події натискання
+     * @return конфігурований Button
+     */
     private Button createStyledButton(String text, javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
         Button btn = new Button(text);
         btn.setFont(Font.font("Arial", 14));
@@ -131,12 +171,21 @@ public class SettingsForm {
         btn.setStyle("-fx-background-color: #c2b280; -fx-text-fill: black; -fx-background-radius: 8;");
         btn.setCursor(Cursor.HAND);
         btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #a99e75; -fx-text-fill: black; -fx-background-radius: 8;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #c2b280; -fx-text-fill: black; -fx-background-radius: 8;"));
+        btn.setOnMouseExited (e -> btn.setStyle("-fx-background-color: #c2b280; -fx-text-fill: black; -fx-background-radius: 8;"));
         btn.setEffect(new DropShadow(4, Color.rgb(0,0,0,0.2)));
         if (handler != null) btn.setOnAction(handler);
         return btn;
     }
+    private Button createStyledButton(String text) {
+        return createStyledButton(text, null);
+    }
 
+    /**
+     * Створює стилізований CheckBox.
+     *
+     * @param text підпис поруч з прапорцем
+     * @return налаштований CheckBox
+     */
     private CheckBox createStyledCheckBox(String text) {
         CheckBox cb = new CheckBox(text);
         cb.setFont(Font.font("Arial", 14));
@@ -144,6 +193,11 @@ public class SettingsForm {
         return cb;
     }
 
+    /**
+     * Створює перемикач теми (Dark/Light) та управляє фоном програми.
+     *
+     * @return HBox з лейблом та ToggleButton
+     */
     private HBox createThemeToggle() {
         Label lbl = new Label("Theme:");
         lbl.setFont(Font.font("Arial", 14));
@@ -166,10 +220,21 @@ public class SettingsForm {
         return new HBox(10, lbl, toggle);
     }
 
+    /**
+     * Допоміжний метод для зміни фону кореневого контейнера.
+     *
+     * @param ctrl елемент з якого беремо Scene
+     * @param bg   CSS-фон
+     */
     private void rootSetBackground(Control ctrl, String bg) {
         ctrl.getScene().getRoot().setStyle("-fx-background-color: " + bg + ";");
     }
 
+    /**
+     * Створює ChoiceBox для вибору мови.
+     *
+     * @return налаштований ChoiceBox з мовами
+     */
     private ChoiceBox<String> createLanguageChoice() {
         ChoiceBox<String> cb = new ChoiceBox<>();
         cb.getItems().addAll("Українська", "English");
@@ -178,6 +243,11 @@ public class SettingsForm {
         return cb;
     }
 
+    /**
+     * Створює контрол для налаштування розміру шрифту.
+     *
+     * @return HBox з Label, Slider і відображенням значення
+     */
     private HBox createFontSizeControl() {
         Label lbl = new Label("Font Size:");
         lbl.setFont(Font.font("Arial", 14));
@@ -197,13 +267,18 @@ public class SettingsForm {
         valueLabel.setTextFill(Color.BLACK);
 
         slider.valueProperty().addListener((obs, o, n) -> {
-            int val = n.intValue();
-            valueLabel.setText(String.valueOf(val));
+            valueLabel.setText(String.valueOf(n.intValue()));
         });
 
         return new HBox(10, lbl, slider, valueLabel);
     }
 
+    /**
+     * Створює простий Label.
+     *
+     * @param text текст для відображення
+     * @return налаштований Label
+     */
     private Label createStyledLabel(String text) {
         Label l = new Label(text);
         l.setFont(Font.font("Arial", 14));
@@ -211,6 +286,12 @@ public class SettingsForm {
         return l;
     }
 
+    /**
+     * Створює Hyperlink.
+     *
+     * @param text текст посилання
+     * @return налаштований Hyperlink
+     */
     private Hyperlink createStyledLink(String text) {
         Hyperlink hl = new Hyperlink(text);
         hl.setFont(Font.font("Arial", 14));
@@ -218,6 +299,11 @@ public class SettingsForm {
         return hl;
     }
 
+    /**
+     * Створює кнопку повернення назад у вигляді кола зі стрілкою.
+     *
+     * @return кнопка Back
+     */
     private Button createBackButton() {
         StackPane circle = new StackPane();
         circle.setPrefSize(36, 36);

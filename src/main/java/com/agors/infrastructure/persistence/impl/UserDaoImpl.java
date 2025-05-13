@@ -8,8 +8,23 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Реалізація інтерфейсу UserDao для роботи з таблицею users.
+ * <p>
+ * Забезпечує додавання, отримання, оновлення та видалення користувачів
+ * у базі даних за допомогою JDBC.</p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class UserDaoImpl implements UserDao {
 
+    /**
+     * Додає нового користувача до таблиці users.
+     *
+     * @param user об'єкт User з даними для збереження
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public void addUser(User user) {
         String sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
@@ -26,10 +41,17 @@ public class UserDaoImpl implements UserDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error inserting user: " + user, e);
+            throw new RuntimeException("Не вдалося додати користувача: " + user, e);
         }
     }
 
+    /**
+     * Знаходить користувача за унікальним ідентифікатором.
+     *
+     * @param id унікальний ідентифікатор користувача
+     * @return знайдений об'єкт User або null, якщо не знайдено
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE id = ?";
@@ -42,11 +64,18 @@ public class UserDaoImpl implements UserDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding user id=" + id, e);
+            throw new RuntimeException("Не вдалося знайти користувача з id=" + id, e);
         }
         return null;
     }
 
+    /**
+     * Шукає користувача за логіном або електронною поштою.
+     *
+     * @param loginOrEmail логін або email користувача
+     * @return знайдений об'єкт User або null, якщо не знайдено
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public User getByUsernameOrEmail(String loginOrEmail) {
         String sql = "SELECT * FROM users WHERE username = ? OR email = ?";
@@ -60,11 +89,17 @@ public class UserDaoImpl implements UserDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding user by login/email=" + loginOrEmail, e);
+            throw new RuntimeException("Не вдалося знайти користувача за логіном/email=" + loginOrEmail, e);
         }
         return null;
     }
 
+    /**
+     * Повертає список усіх користувачів.
+     *
+     * @return список об'єктів User
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public List<User> getAllUsers() {
         String sql = "SELECT * FROM users";
@@ -76,11 +111,17 @@ public class UserDaoImpl implements UserDao {
                 users.add(mapRowToUser(rs));
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error loading all users", e);
+            throw new RuntimeException("Не вдалося завантажити користувачів", e);
         }
         return users;
     }
 
+    /**
+     * Оновлює дані існуючого користувача.
+     *
+     * @param user об'єкт User з оновленими даними
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public void updateUser(User user) {
         String sql = "UPDATE users SET username = ?, email = ?, password = ?, role = ? WHERE id = ?";
@@ -93,10 +134,16 @@ public class UserDaoImpl implements UserDao {
             stmt.setInt(5, user.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error updating user: " + user, e);
+            throw new RuntimeException("Не вдалося оновити користувача: " + user, e);
         }
     }
 
+    /**
+     * Видаляє користувача за його унікальним ідентифікатором.
+     *
+     * @param id унікальний ідентифікатор користувача
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public void deleteUser(int id) {
         String sql = "DELETE FROM users WHERE id = ?";
@@ -105,10 +152,17 @@ public class UserDaoImpl implements UserDao {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting user id=" + id, e);
+            throw new RuntimeException("Не вдалося видалити користувача з id=" + id, e);
         }
     }
 
+    /**
+     * Допоміжний метод для мапінгу ResultSet в об'єкт User.
+     *
+     * @param rs ResultSet з полями id, username, email, password, role
+     * @return екземпляр User з даними з поточного рядка
+     * @throws SQLException у разі помилки доступу до ResultSet
+     */
     private User mapRowToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("id"));

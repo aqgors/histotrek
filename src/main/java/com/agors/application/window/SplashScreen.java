@@ -14,9 +14,28 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+/**
+ * Клас, що реалізує екран завантаження (splash screen) для застосунку Histotrek.
+ * <p>
+ * При відображенні показує анімацію пульсації тексту та падаючого піску,
+ * після чого переходить на головне меню.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class SplashScreen {
+    /**
+     * Вікно splash screen.
+     */
     private final Stage stage;
 
+    /**
+     * Створює екземпляр SplashScreen з налаштуванням стилю та сцени.
+     * <p>
+     * Ініціалізує безрамкове вікно, текст та фоновий градієнт.
+     * </p>
+     */
     public SplashScreen() {
         stage = new Stage();
         stage.initStyle(StageStyle.UNDECORATED);
@@ -41,6 +60,11 @@ public class SplashScreen {
         });
     }
 
+    /**
+     * Відображає splash screen, а після затримки закриває його та показує наступний екран.
+     *
+     * @param nextStage вікно головного меню, яке буде показане після завершення анімації
+     */
     public void show(Stage nextStage) {
         stage.show();
 
@@ -52,6 +76,11 @@ public class SplashScreen {
         delay.play();
     }
 
+    /**
+     * Запускає безкінечну анімацію пульсації тексту.
+     *
+     * @param text текстовий елемент для анімації пульсу
+     */
     private void playTextPulse(Text text) {
         ScaleTransition scaleUp = new ScaleTransition(Duration.seconds(1.5), text);
         scaleUp.setToX(1.05);
@@ -66,6 +95,11 @@ public class SplashScreen {
         pulse.play();
     }
 
+    /**
+     * Запускає безкінечну анімацію частинок піску, які піднімаються вгору та зникають.
+     *
+     * @param sandPane контейнер для частинок піску
+     */
     private void playSandAnimation(Pane sandPane) {
         Timeline sandTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             Circle sand = new Circle(2, Color.web("#000000", 0.6));

@@ -21,10 +21,26 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Форма входу користувача.
+ * <p>
+ * Відображає поля для введення логіну (або email) та пароля,
+ * виконує валідацію через LoginValidator, завантажує дані користувача
+ * та переходить до UserForm при успішному вході.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class LoginForm {
 
+    /**
+     * Показує вікно форми входу.
+     *
+     * @param stage  поточне вікно для відображення форми
+     * @param owner  батьківське вікно (MenuScreen), до якого повернутися при виході
+     */
     public void show(Stage stage, Stage owner) {
-
         stage.setFullScreen(owner.isFullScreen());
         stage.setFullScreenExitHint("");
 
@@ -34,19 +50,26 @@ public class LoginForm {
         Label loginErr = styledError();
         Label pwErr    = styledError();
 
-        Button loginBtn = styledButton("Log in", "-fx-background-color:#c2b280;", e ->
-            handleLogin(stage, owner, loginField, pwField, loginErr, pwErr)
+        Button loginBtn = styledButton(
+            "Log in",
+            "-fx-background-color:#c2b280;",
+            e -> handleLogin(stage, owner, loginField, pwField, loginErr, pwErr)
         );
-        Button backBtn = styledButton("Back", "-fx-background-color:transparent;", e -> {
-            owner.setFullScreen(stage.isFullScreen());
-            stage.close(); owner.show();
-        });
+        Button backBtn = styledButton(
+            "Back",
+            "-fx-background-color:transparent;",
+            e -> {
+                owner.setFullScreen(stage.isFullScreen());
+                stage.close();
+                owner.show();
+            }
+        );
 
         VBox form = new VBox(20,
             title("Log in"),
             loginField, loginErr,
-            pwField, pwErr,
-            loginBtn, backBtn
+            pwField,    pwErr,
+            loginBtn,   backBtn
         );
         form.setAlignment(Pos.CENTER);
         form.setPadding(new Insets(40));
@@ -61,7 +84,9 @@ public class LoginForm {
         Scene scene = new Scene(root, 800, 600);
         bindSize(sand, scene);
         scene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.F11) stage.setFullScreen(!stage.isFullScreen());
+            if (e.getCode() == KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
         });
 
         stage.setScene(scene);
@@ -72,10 +97,22 @@ public class LoginForm {
         form.requestFocus();
     }
 
+    /**
+     * Обробляє натискання кнопки входу:
+     * перевіряє поля, показує помилки або переходить до UserForm.
+     *
+     * @param stage      поточне вікно логіну
+     * @param owner      батьківське вікно (MenuScreen)
+     * @param lf         поле логіну або email
+     * @param pf         поле пароля
+     * @param e1         Label для повідомлень по логіну
+     * @param e2         Label для повідомлень по паролю
+     */
     private void handleLogin(Stage stage, Stage owner,
         TextField lf, PasswordField pf,
         Label e1, Label e2) {
-        e1.setText(""); e2.setText("");
+        e1.setText("");
+        e2.setText("");
         var errs = LoginValidator.validate(lf.getText(), pf.getText());
         e1.setText(errs.getOrDefault("login", ""));
         e2.setText(errs.getOrDefault("password", ""));
@@ -87,27 +124,49 @@ public class LoginForm {
         }
     }
 
-
+    /**
+     * Створює заголовочний текст форми.
+     *
+     * @param t текст заголовка
+     * @return налаштований Text
+     */
     private Text title(String t) {
         Text x = new Text(t);
         x.setFont(Font.font("Arial", 32));
         x.setFill(Color.web("#3e2723"));
-        x.setEffect(new DropShadow(3, Color.rgb(0,0,0,0.15)));
+        x.setEffect(new DropShadow(3, Color.rgb(0, 0, 0, 0.15)));
         return x;
     }
 
+    /**
+     * Стилізує поле вводу з підказкою.
+     *
+     * @param prompt текст-підказка
+     * @param <T>    тип поля (TextField або PasswordField)
+     * @return налаштоване поле вводу
+     */
+    @SuppressWarnings("unchecked")
     private <T extends TextInputControl> T styledField(String prompt) {
-        T f = (prompt.contains("Password") ? (T)new PasswordField() : (T)new TextField());
+        T f = (T)(prompt.contains("Password") ? new PasswordField() : new TextField());
         f.setPromptText(prompt);
         f.setMaxWidth(320);
         f.setPrefHeight(45);
         f.setFont(Font.font("Arial", 14));
-        f.setStyle("-fx-background-color:rgba(255,255,255,0.6);"
-            +"-fx-border-color:#d3d3d3;-fx-background-radius:8;"
-            +"-fx-border-radius:8;-fx-padding:0 10;");
+        f.setStyle(
+            "-fx-background-color:rgba(255,255,255,0.6);"
+                + "-fx-border-color:#d3d3d3;"
+                + "-fx-background-radius:8;"
+                + "-fx-border-radius:8;"
+                + "-fx-padding:0 10;"
+        );
         return f;
     }
 
+    /**
+     * Створює Label для відображення повідомлень про помилки.
+     *
+     * @return налаштований Label
+     */
     private Label styledError() {
         Label l = new Label();
         l.setTextFill(Color.RED);
@@ -117,11 +176,22 @@ public class LoginForm {
         return l;
     }
 
-    private Button styledButton(String text, String baseStyle,
-        javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
+    /**
+     * Створює стилізовану кнопку з hover-ефектом.
+     *
+     * @param text       текст кнопки
+     * @param baseStyle  базовий CSS-стиль
+     * @param handler    обробник натискання
+     * @return налаштована Button
+     */
+    private Button styledButton(
+        String text,
+        String baseStyle,
+        javafx.event.EventHandler<javafx.event.ActionEvent> handler
+    ) {
         Button b = new Button(text);
-        b.setFont(Font.font("Arial",16));
-        b.setPrefSize(320,50);
+        b.setFont(Font.font("Arial", 16));
+        b.setPrefSize(320, 50);
         String hover = baseStyle.contains("transparent")
             ? "-fx-background-color:#f5e4c4;"
             : "-fx-background-color:#a99e75;";
@@ -133,16 +203,21 @@ public class LoginForm {
         return b;
     }
 
+    /**
+     * Фонова анімація падаючого піску.
+     *
+     * @param p Pane, на якому анімуються частинки
+     */
     private void animateSand(Pane p) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = p.getWidth(), h = p.getHeight();
             Circle c = new Circle(2, Color.web("#000000", 0.4));
-            c.setCenterX(Math.random()*w);
+            c.setCenterX(Math.random() * w);
             c.setCenterY(h);
             p.getChildren().add(c);
             TranslateTransition tt = new TranslateTransition(Duration.seconds(3), c);
             tt.setByY(-h);
-            tt.setByX(Math.random()*60 - 30);
+            tt.setByX(Math.random() * 60 - 30);
             tt.setOnFinished(ev -> p.getChildren().remove(c));
             tt.play();
         }));
@@ -151,6 +226,12 @@ public class LoginForm {
         tl.play();
     }
 
+    /**
+     * Прив’язує розміри Pane до розмірів Scene.
+     *
+     * @param p Pane для зв’язування
+     * @param s Scene, розміри якої використовуються
+     */
     private void bindSize(Pane p, Scene s) {
         p.prefWidthProperty().bind(s.widthProperty());
         p.prefHeightProperty().bind(s.heightProperty());

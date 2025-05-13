@@ -7,7 +7,6 @@ import com.agors.domain.entity.Favorite;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.infrastructure.persistence.impl.FavoriteDaoImpl;
 import javafx.animation.*;
-import javafx.animation.KeyFrame;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -21,7 +20,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -29,6 +27,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Форма користувача: відображає список усіх історичних місць
+ * та обраних місць, дозволяє пошук, перегляд деталей та навігацію
+ * до налаштувань або виходу.
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class UserForm {
 
     private final PlaceDaoImpl placeDaoImpl = new PlaceDaoImpl();
@@ -40,18 +46,27 @@ public class UserForm {
     private FlowPane favFlow;
     private Stage primaryStage;
 
+    /**
+     * Ініціалізує і показує форму користувача.
+     *
+     * @param stage        головна сцена програми
+     * @param userId       ідентифікатор поточного користувача
+     * @param isFullScreen прапорець, чи відкривати у повноекранному режимі
+     */
     public void start(Stage stage, int userId, boolean isFullScreen) {
-        this.primaryStage = stage;
+        this.primaryStage  = stage;
         this.currentUserId = userId;
         this.primaryStage.setFullScreen(isFullScreen);
         this.primaryStage.setFullScreenExitHint("");
 
+        // Завантажуємо всі місця
         allPlaces = placeDaoImpl.findAll();
 
         HBox topBar = createTopBar();
 
+        // Вкладки: всі місця та обрані
         TabPane tabPane = new TabPane();
-        Tab allTab = new Tab("All");   allTab.setClosable(false);
+        Tab allTab = new Tab("All");       allTab.setClosable(false);
         Tab favTab = new Tab("Favorites"); favTab.setClosable(false);
 
         allFlow = createFlow();
@@ -61,9 +76,11 @@ public class UserForm {
         favTab.setContent(wrapScroll(favFlow));
         tabPane.getTabs().addAll(allTab, favTab);
 
+        // Першочергова завантаження карток
         loadCards(allFlow, allPlaces);
         loadCards(favFlow, getFavoritePlaces());
 
+        // Пошук у вкладках
         TextField searchField = (TextField) topBar.lookup("#searchField");
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             searchField.setText("");
@@ -80,6 +97,7 @@ public class UserForm {
         BorderPane root = new BorderPane(tabPane);
         root.setTop(topBar);
 
+        // Фонова анімація піску
         Pane sand = new Pane(); sand.setMouseTransparent(true);
         playSandAnimation(sand);
         StackPane stack = new StackPane(sand, root);
@@ -89,6 +107,7 @@ public class UserForm {
         sand.prefWidthProperty().bind(scene.widthProperty());
         sand.prefHeightProperty().bind(scene.heightProperty());
 
+        // F11 для повноекранного режиму
         scene.setOnKeyPressed(evt -> {
             if (evt.getCode() == KeyCode.F11) {
                 stage.setFullScreen(!stage.isFullScreen());
@@ -102,6 +121,9 @@ public class UserForm {
         primaryStage.show();
     }
 
+    /**
+     * Створює панель зверху з назвою, полем пошуку та кнопкою профілю.
+     */
     private HBox createTopBar() {
         HBox bar = new HBox(10);
         bar.setAlignment(Pos.CENTER_LEFT);
@@ -117,7 +139,7 @@ public class UserForm {
         search.setMaxWidth(280);
         search.setFont(Font.font("Arial", 14));
 
-        Region left = new Region(); HBox.setHgrow(left, Priority.ALWAYS);
+        Region left = new Region();  HBox.setHgrow(left, Priority.ALWAYS);
         Region right = new Region(); HBox.setHgrow(right, Priority.ALWAYS);
 
         Button profile = new Button("👤");
@@ -145,6 +167,9 @@ public class UserForm {
         return bar;
     }
 
+    /**
+     * Створює FlowPane для карток.
+     */
     private FlowPane createFlow() {
         FlowPane flow = new FlowPane(20, 20);
         flow.setPadding(new Insets(20));
@@ -152,6 +177,9 @@ public class UserForm {
         return flow;
     }
 
+    /**
+     * Обгортає FlowPane у ScrollPane.
+     */
     private ScrollPane wrapScroll(FlowPane flow) {
         ScrollPane sp = new ScrollPane(flow);
         sp.setFitToWidth(true);
@@ -159,11 +187,17 @@ public class UserForm {
         return sp;
     }
 
+    /**
+     * Завантажує картки місць у вказаний FlowPane.
+     */
     private void loadCards(FlowPane flow, List<Place> places) {
         flow.getChildren().clear();
         places.forEach(p -> flow.getChildren().add(createCard(p)));
     }
 
+    /**
+     * Повертає список улюблених місць поточного користувача.
+     */
     private List<Place> getFavoritePlaces() {
         return favoriteDaoImpl.findByUser(currentUserId).stream()
             .map(Favorite::getPlaceId)
@@ -172,6 +206,9 @@ public class UserForm {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Фільтрує список місць за запитом користувача.
+     */
     private List<Place> filterList(List<Place> list, String q) {
         String lower = q.toLowerCase();
         return list.stream()
@@ -181,14 +218,18 @@ public class UserForm {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Створює картку із інформацією про місце.
+     */
     private VBox createCard(Place place) {
         VBox card = new VBox(10);
         card.setPadding(new Insets(10));
         card.setAlignment(Pos.TOP_LEFT);
         card.setPrefWidth(250);
-        String baseStyle = "-fx-background-color: white; -fx-border-color: #d3d3d3; "
-            + "-fx-border-radius: 8; -fx-background-radius: 8; "
-            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0, 0, 2)";
+        String baseStyle =
+            "-fx-background-color: white; -fx-border-color: #d3d3d3;"
+                + "-fx-border-radius: 8; -fx-background-radius: 8;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0, 0, 2)";
         card.setStyle(baseStyle);
 
         try {
@@ -212,18 +253,24 @@ public class UserForm {
 
         VBox infoBox = new VBox(6);
         infoBox.setVisible(false);
-        Label locLbl = new Label("🌍 " + place.getCountry()); locLbl.setFont(Font.font(12)); locLbl.setTextFill(Color.web("#555"));
-        Label eraLbl = new Label("🕰 " + place.getEra()); eraLbl.setFont(Font.font(12)); eraLbl.setTextFill(Color.web("#555"));
-        Label descLbl = new Label(place.getDescription()); descLbl.setWrapText(true); descLbl.setFont(Font.font(12));
+        Label locLbl  = new Label("🌍 " + place.getCountry());
+        Label eraLbl  = new Label("🕰 " + place.getEra());
+        Label descLbl = new Label(place.getDescription());
+        locLbl .setFont(Font.font(12)); locLbl .setTextFill(Color.web("#555"));
+        eraLbl .setFont(Font.font(12)); eraLbl .setTextFill(Color.web("#555"));
+        descLbl.setWrapText(true); descLbl.setFont(Font.font(12));
         infoBox.getChildren().addAll(locLbl, eraLbl, descLbl);
 
         card.getChildren().addAll(nameLbl, stars, infoBox);
-        card.setOnMouseEntered(e -> { hoverCard(card, true); infoBox.setVisible(true); });
-        card.setOnMouseExited(e -> { hoverCard(card, false); infoBox.setVisible(false); });
+        card.setOnMouseEntered(e -> { hoverCard(card, true);  infoBox.setVisible(true); });
+        card.setOnMouseExited (e -> { hoverCard(card, false); infoBox.setVisible(false); });
 
         return card;
     }
 
+    /**
+     * Анімація наведення на картку: змінює масштаб і тінь.
+     */
     private void hoverCard(VBox card, boolean hover) {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
         st.setToX(hover ? 1.05 : 1.0);
@@ -231,29 +278,37 @@ public class UserForm {
         st.play();
 
         String bgColor = hover ? "#fefae0" : "white";
-        double opacity   = hover ? 0.2 : 0.1;
-        int    radius    = hover ? 8 : 6;
-        int    blur      = hover ? 4 : 2;
-        String effect = String.format("dropshadow(gaussian, rgba(0,0,0,%.2f), %d, 0, 0, %d)", opacity, radius, blur);
+        double opacity   = hover ? 0.2      : 0.1;
+        int    radius    = hover ? 8        : 6;
+        int    blur      = hover ? 4        : 2;
+        String effect = String.format(
+            "dropshadow(gaussian, rgba(0,0,0,%.2f), %d, 0, 0, %d)",
+            opacity, radius, blur);
 
-        card.setStyle("-fx-background-color: " + bgColor + "; "
-            + "-fx-border-color: #d3d3d3; "
-            + "-fx-border-radius: 8; -fx-background-radius: 8; "
-            + "-fx-effect: " + effect + ";");
+        card.setStyle(
+            "-fx-background-color: " + bgColor + ";"
+                + "-fx-border-color: #d3d3d3;"
+                + "-fx-border-radius: 8; -fx-background-radius: 8;"
+                + "-fx-effect: " + effect + ";");
     }
 
+    /**
+     * Фонова анімація падаючого піску.
+     */
     private void playSandAnimation(Pane pane) {
-        Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
-            Circle c = new Circle(2, Color.web("#000000", 0.2));
-            c.setCenterX(Math.random() * pane.getWidth());
-            c.setCenterY(pane.getHeight());
-            pane.getChildren().add(c);
-            TranslateTransition tt = new TranslateTransition(Duration.seconds(4), c);
-            tt.setByY(-pane.getHeight());
-            tt.setByX(Math.random() * 60 - 30);
-            tt.setOnFinished(ev -> pane.getChildren().remove(c));
-            tt.play();
-        }));
+        Timeline tl = new Timeline(
+            new KeyFrame(Duration.millis(100), e -> {
+                Circle c = new Circle(2, Color.web("#000000", 0.2));
+                c.setCenterX(Math.random() * pane.getWidth());
+                c.setCenterY(pane.getHeight());
+                pane.getChildren().add(c);
+                TranslateTransition tt = new TranslateTransition(
+                    Duration.seconds(4), c);
+                tt.setByY(-pane.getHeight());
+                tt.setByX(Math.random() * 60 - 30);
+                tt.setOnFinished(ev -> pane.getChildren().remove(c));
+                tt.play();
+            }));
         tl.setCycleCount(Animation.INDEFINITE);
         tl.play();
     }

@@ -8,8 +8,24 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Реалізація інтерфейсу FavoriteDao для роботи з таблицею favorite.
+ * <p>
+ * Забезпечує додавання, отримання та видалення записів обраних місць користувача
+ * у базі даних за допомогою JDBC.</p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class FavoriteDaoImpl implements FavoriteDao {
 
+    /**
+     * Додає новий запис обраного місця у таблицю favorite.
+     *
+     * @param fav об'єкт Favorite з інформацією про користувача та місце
+     * @return збережений об'єкт Favorite з встановленим id
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public Favorite add(Favorite fav) {
         String sql = "INSERT INTO favorite (user_id, place_id, created_at) VALUES (?, ?, ?)";
@@ -25,11 +41,18 @@ public class FavoriteDaoImpl implements FavoriteDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error inserting favorite: " + fav, e);
+            throw new RuntimeException("Не вдалося додати улюблене місце: " + fav, e);
         }
         return fav;
     }
 
+    /**
+     * Повертає список обраних місць для вказаного користувача.
+     *
+     * @param userId унікальний ідентифікатор користувача
+     * @return список об'єктів Favorite
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public List<Favorite> findByUser(int userId) {
         String sql = "SELECT id, user_id, place_id, created_at FROM favorite WHERE user_id = ?";
@@ -43,11 +66,18 @@ public class FavoriteDaoImpl implements FavoriteDao {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error fetching favorites for user " + userId, e);
+            throw new RuntimeException("Не вдалося отримати улюблені місця для користувача: " + userId, e);
         }
         return list;
     }
 
+    /**
+     * Видаляє запис обраного місця для користувача.
+     *
+     * @param userId  унікальний ідентифікатор користувача
+     * @param placeId унікальний ідентифікатор місця
+     * @throws RuntimeException у разі помилки доступу до БД
+     */
     @Override
     public void remove(int userId, int placeId) {
         String sql = "DELETE FROM favorite WHERE user_id = ? AND place_id = ?";
@@ -57,10 +87,17 @@ public class FavoriteDaoImpl implements FavoriteDao {
             stmt.setInt(2, placeId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting favorite: user=" + userId + ", place=" + placeId, e);
+            throw new RuntimeException("Не вдалося видалити обране місце: користувач=" + userId + ", місце=" + placeId, e);
         }
     }
 
+    /**
+     * Допоміжний метод для мапінгу поточного рядка ResultSet в об'єкт Favorite.
+     *
+     * @param rs ResultSet з полями id, user_id, place_id, created_at
+     * @return екземпляр Favorite з даними
+     * @throws SQLException у разі помилки доступу до полів ResultSet
+     */
     private Favorite mapRowToFavorite(ResultSet rs) throws SQLException {
         Favorite f = new Favorite();
         f.setId(rs.getInt("id"));

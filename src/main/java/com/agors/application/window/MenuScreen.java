@@ -23,8 +23,27 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Клас, що реалізує головне меню застосунку Histotrek.
+ * <p>
+ * Відображає екран із кнопками для входу, реєстрації або гостьового доступу,
+ * а також фонова анімація падаючого піску.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class MenuScreen {
 
+    /**
+     * Відображає головне меню на вказаній сцені.
+     * <p>
+     * Створює оформлення заголовка, кнопок та футера,
+     * налаштовує обробку подій та анімацію фону.
+     * </p>
+     *
+     * @param stage сцена, на якій буде показане меню
+     */
     public void show(Stage stage) {
         Text title = new Text("HISTOTREK");
         title.setFont(Font.font("Arial", 44));
@@ -64,6 +83,7 @@ public class MenuScreen {
         bottomSection.setAlignment(Pos.BOTTOM_CENTER);
         bottomSection.setPadding(new Insets(0, 0, 15, 0));
 
+        // Анімація появи кнопок
         FadeTransition fadeButtons = new FadeTransition(Duration.seconds(1.2), centerSection);
         centerSection.setOpacity(0);
         fadeButtons.setToValue(1);
@@ -86,6 +106,7 @@ public class MenuScreen {
         sandPane.prefWidthProperty().bind(scene.widthProperty());
         sandPane.prefHeightProperty().bind(scene.heightProperty());
 
+        // Повноекранний режим по F11
         scene.setOnKeyPressed(evt -> {
             if (evt.getCode() == KeyCode.F11) {
                 stage.setFullScreen(!stage.isFullScreen());
@@ -100,6 +121,15 @@ public class MenuScreen {
         stage.show();
     }
 
+    /**
+     * Створює кнопку з базовою та hover-стилізацією.
+     * <p>
+     * Кнопка має анімацію при наведенні та тінь.
+     * </p>
+     *
+     * @param text текст кнопки
+     * @return налаштований екземпляр Button
+     */
     private Button createAnimatedButton(String text) {
         final String baseStyle = "-fx-background-color: #c2b280; -fx-text-fill: white; " +
             "-fx-font-size: 18px; -fx-background-radius: 15; -fx-cursor: hand;";
@@ -119,6 +149,14 @@ public class MenuScreen {
         return button;
     }
 
+    /**
+     * Запускає анімацію частинок піску у фоновому шарі.
+     * <p>
+     * Частинки переміщуються вгору та видаляються після анімації.
+     * </p>
+     *
+     * @param sandPane контейнер для частинок піску
+     */
     private void playSandAnimation(Pane sandPane) {
         Timeline sandTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double width = sandPane.getWidth();
