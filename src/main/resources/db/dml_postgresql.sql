@@ -1,10 +1,10 @@
 -- --------- Users ---------
 INSERT INTO users (username, email, password, role)
-VALUES ('ivan', 'ivan@example.com',
+VALUES ('ivan', 'ivan123@example.com',
         '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'USER'),
-       ('olga', 'olga@example.com',
+       ('olga', 'olga123@example.com',
         '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'ADMIN'),
-       ('petro', 'petro@example.com',
+       ('petro', 'petro123@example.com',
         '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'USER');
 
 -- --------- Places ---------

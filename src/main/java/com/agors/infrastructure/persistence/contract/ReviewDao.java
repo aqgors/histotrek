@@ -44,4 +44,6 @@ public interface ReviewDao {
      * @param reviewId унікальний ідентифікатор відгуку
      */
     void remove(int reviewId);
+
+    void update(Review review);
 }

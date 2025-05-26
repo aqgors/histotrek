@@ -8,24 +8,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Реалізація інтерфейсу ReviewDao для роботи з таблицею review.
- * <p>
- * Забезпечує додавання, отримання та видалення відгуків
- * у базі даних за допомогою JDBC.</p>
- *
- * @author agors
- * @version 1.0
- */
 public class ReviewDaoImpl implements ReviewDao {
 
-    /**
-     * Додає новий відгук до таблиці review.
-     *
-     * @param review об'єкт Review з даними відгуку
-     * @return збережений екземпляр Review з встановленим id
-     * @throws RuntimeException у разі помилки доступу до БД
-     */
     @Override
     public Review add(Review review) {
         String sql = "INSERT INTO review (place_id, user_id, text, rating, created_at) VALUES (?, ?, ?, ?, ?)";
@@ -48,13 +32,21 @@ public class ReviewDaoImpl implements ReviewDao {
         return review;
     }
 
-    /**
-     * Повертає список відгуків для вказаного місця.
-     *
-     * @param placeId унікальний ідентифікатор місця
-     * @return список екземплярів Review
-     * @throws RuntimeException у разі помилки доступу до БД
-     */
+    @Override
+    public void update(Review review) {
+        String sql = "UPDATE review SET text = ?, rating = ?, created_at = ? WHERE id = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, review.getText());
+            stmt.setInt(2, review.getRating());
+            stmt.setTimestamp(3, Timestamp.valueOf(review.getCreatedAt()));
+            stmt.setInt(4, review.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Не вдалося оновити відгук: " + review, e);
+        }
+    }
+
     @Override
     public List<Review> findByPlace(int placeId) {
         String sql = "SELECT id, place_id, user_id, text, rating, created_at FROM review WHERE place_id = ?";
@@ -73,13 +65,6 @@ public class ReviewDaoImpl implements ReviewDao {
         return list;
     }
 
-    /**
-     * Повертає список відгуків, залишених вказаним користувачем.
-     *
-     * @param userId унікальний ідентифікатор користувача
-     * @return список екземплярів Review
-     * @throws RuntimeException у разі помилки доступу до БД
-     */
     @Override
     public List<Review> findByUser(int userId) {
         String sql = "SELECT id, place_id, user_id, text, rating, created_at FROM review WHERE user_id = ?";
@@ -98,12 +83,6 @@ public class ReviewDaoImpl implements ReviewDao {
         return list;
     }
 
-    /**
-     * Видаляє відгук за його ідентифікатором.
-     *
-     * @param reviewId унікальний ідентифікатор відгуку
-     * @throws RuntimeException у разі помилки доступу до БД
-     */
     @Override
     public void remove(int reviewId) {
         String sql = "DELETE FROM review WHERE id = ?";
@@ -116,13 +95,6 @@ public class ReviewDaoImpl implements ReviewDao {
         }
     }
 
-    /**
-     * Допоміжний метод для мапінгу ResultSet в об'єкт Review.
-     *
-     * @param rs ResultSet з полями id, place_id, user_id, text, rating, created_at
-     * @return екземпляр Review з даними з поточного рядка
-     * @throws SQLException у разі помилки доступу до ResultSet
-     */
     private Review mapRowToReview(ResultSet rs) throws SQLException {
         Review r = new Review();
         r.setId(rs.getInt("id"));

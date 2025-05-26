@@ -1,6 +1,7 @@
 package com.agors.application.form;
 
 import com.agors.application.window.MenuScreen;
+import com.agors.application.window.MessageBox;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.domain.entity.Place;
 import javafx.animation.KeyFrame;
@@ -323,6 +324,14 @@ public class GuestForm {
         }
 
         card.getChildren().addAll(title, location, era, desc);
+
+        card.setOnMouseClicked(e -> {
+            MessageBox.show(
+                "🔒 Обмежений доступ",
+                "Щоб оцінювати місця, залишати відгуки та додавати у вибране — увійдіть або зареєструйтесь."
+            );
+        });
+
         return card;
     }
 

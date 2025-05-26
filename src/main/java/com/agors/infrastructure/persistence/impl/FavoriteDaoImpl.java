@@ -2,6 +2,7 @@ package com.agors.infrastructure.persistence.impl;
 
 import com.agors.domain.entity.Favorite;
 import com.agors.infrastructure.persistence.contract.FavoriteDao;
+import com.agors.infrastructure.util.ConnectionHolder;
 import com.agors.infrastructure.util.ConnectionManager;
 
 import java.sql.*;
@@ -106,4 +107,34 @@ public class FavoriteDaoImpl implements FavoriteDao {
         f.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         return f;
     }
+
+    public void addToFavorites(int userId, int placeId) {
+        String sql = "INSERT INTO favorite (user_id, place_id, created_at) VALUES (?, ?, now()) ON CONFLICT DO NOTHING";
+
+        try (Connection conn = ConnectionManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            stmt.setInt(2, placeId);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Помилка при додаванні до обраного", e);
+        }
+    }
+
+    public boolean isFavorite(int userId, int placeId) {
+        String sql = "SELECT 1 FROM favorite WHERE user_id = ? AND place_id = ? LIMIT 1";
+        try (Connection conn = ConnectionManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, placeId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Не вдалося перевірити обране місце", e);
+        }
+    }
+
 }

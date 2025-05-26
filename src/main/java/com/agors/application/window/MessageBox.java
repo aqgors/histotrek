@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -75,7 +76,6 @@ public class MessageBox {
         dialog.initStyle(StageStyle.TRANSPARENT);
         scene.setFill(Color.TRANSPARENT);
 
-        // Налаштування початкової трансформації для анімації
         box.setScaleX(0.85);
         box.setScaleY(0.85);
         box.setOpacity(0);
@@ -95,4 +95,76 @@ public class MessageBox {
 
         dialog.showAndWait();
     }
+
+    public static boolean showConfirm(String title, String message) {
+        final boolean[] result = {false};
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setResizable(false);
+
+        VBox box = new VBox(20);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(30));
+        box.setStyle("-fx-background-color: white; -fx-background-radius: 12;");
+        box.setEffect(new DropShadow(8, Color.rgb(0, 0, 0, 0.25)));
+
+        Text titleText = new Text(title);
+        titleText.setFont(Font.font("Arial", 22));
+        titleText.setFill(Color.web("#1a3e2b"));
+
+        Text messageText = new Text(message);
+        messageText.setFont(Font.font("Arial", 14));
+        messageText.setFill(Color.web("#333333"));
+        messageText.setWrappingWidth(280);
+        messageText.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+
+        HBox buttons = new HBox(20);
+        buttons.setAlignment(Pos.CENTER);
+
+        Button yesButton = new Button("Так");
+        Button noButton = new Button("Скасувати");
+
+        yesButton.setFont(Font.font("Arial", 14));
+        yesButton.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-background-radius: 8;");
+        yesButton.setOnAction(e -> {
+            result[0] = true;
+            dialog.close();
+        });
+
+        noButton.setFont(Font.font("Arial", 14));
+        noButton.setStyle("-fx-background-color: #b71c1c; -fx-text-fill: white; -fx-background-radius: 8;");
+        noButton.setOnAction(e -> {
+            result[0] = false;
+            dialog.close();
+        });
+
+        buttons.getChildren().addAll(yesButton, noButton);
+        box.getChildren().addAll(titleText, messageText, buttons);
+
+        Scene scene = new Scene(box, 360, 200);
+        dialog.setScene(scene);
+        dialog.initStyle(StageStyle.TRANSPARENT);
+        scene.setFill(Color.TRANSPARENT);
+
+        box.setScaleX(0.85);
+        box.setScaleY(0.85);
+        box.setOpacity(0);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(300), box);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+
+        ScaleTransition scale = new ScaleTransition(Duration.millis(300), box);
+        scale.setFromX(0.85);
+        scale.setFromY(0.85);
+        scale.setToX(1);
+        scale.setToY(1);
+
+        fade.play();
+        scale.play();
+
+        dialog.showAndWait();
+        return result[0];
+    }
+
 }
