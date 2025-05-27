@@ -172,4 +172,30 @@ public class UserDaoImpl implements UserDao {
         user.setRole(rs.getString("role"));
         return user;
     }
+
+    public boolean existsByUsername(String username) {
+        String sql = "SELECT 1 FROM users WHERE username = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Не вдалося перевірити ім’я користувача: " + username, e);
+        }
+    }
+
+    public boolean existsByEmail(String email) {
+        String sql = "SELECT 1 FROM users WHERE email = ?";
+        try (Connection conn = ConnectionManager.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Не вдалося перевірити email: " + email, e);
+        }
+    }
 }

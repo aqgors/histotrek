@@ -3,7 +3,10 @@ package com.agors.application.form;
 import com.agors.application.window.MessageBox;
 import com.agors.domain.entity.User;
 import com.agors.domain.validation.LoginValidator;
+import com.agors.domain.validation.SettingsValidator;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import com.agors.infrastructure.util.PasswordUtil;
+import com.agors.infrastructure.util.SessionContext;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
@@ -36,23 +39,15 @@ import javafx.util.Duration;
  */
 public class SettingsForm {
 
-    /** Батьківське вікно (MenuScreen), до якого повернемось */
     private final Stage parentStage;
+    private final SettingsValidator validator = new SettingsValidator();
+    private final UserDaoImpl userDao = new UserDaoImpl();
+    private final User currentUser = SessionContext.getCurrentUser();
 
-    /**
-     * Конструктор форми налаштувань.
-     *
-     * @param parentStage головне вікно програми
-     */
     public SettingsForm(Stage parentStage) {
         this.parentStage = parentStage;
     }
 
-    /**
-     * Показує вікно налаштувань і приховує батьківське.
-     *
-     * @param settingsStage новий Stage для відображення налаштувань
-     */
     public void show(Stage settingsStage) {
         parentStage.hide();
         settingsStage.setFullScreen(parentStage.isFullScreen());
@@ -76,37 +71,15 @@ public class SettingsForm {
 
         VBox content = new VBox(20,
             createSection("Profile",
-                createStyledButton("Змінити ім'я користувача"),
-                createStyledButton("Оновити електронну пошту"),
-                createStyledButton("Змінити пароль")
-            ),
-            createSection("Preferences",
-                createThemeToggle(),
-                createLanguageChoice(),
-                createFontSizeControl()
-            ),
-            createSection("Administration",
-                createStyledButton("Access the Citadel", ev -> {
-                    Alert info = new Alert(Alert.AlertType.INFORMATION);
-                    info.setTitle("Administration");
-                    info.setHeaderText(null);
-                    info.setContentText("Admin menu coming soon.");
-                    info.showAndWait();
+                createStyledButton("Змінити ім'я користувача", e -> {
+                    if (confirmPassword(settingsStage)) handleChangeUsername(settingsStage);
+                }),
+                createStyledButton("Оновити електронну пошту", e -> {
+                    if (confirmPassword(settingsStage)) handleChangeEmail(settingsStage);
+                }),
+                createStyledButton("Змінити пароль", e -> {
+                    if (confirmPassword(settingsStage)) handleChangePassword(settingsStage);
                 })
-            ),
-            createSection("Privacy & Security",
-                createStyledCheckBox("Двохфакторна автентифікація"),
-                createStyledButton("Видалити обліковий запис")
-            ),
-            createSection("About",
-                createStyledLabel("Версія додатку: 1.0.0"),
-                createStyledLink("Ліцензія / Умови використання"),
-                createStyledLink("Контакти підтримки")
-            ),
-            createSection("Help & Feedback",
-                createStyledLink("Часті питання"),
-                createStyledButton("Надіслати відгук"),
-                createStyledLink("Зв’язатися з підтримкою")
             )
         );
         content.setPadding(new Insets(20));
@@ -120,7 +93,6 @@ public class SettingsForm {
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);");
 
         Scene scene = new Scene(root, 800, 600);
-        // F11 для перемикання повноекранного режиму
         scene.setOnKeyPressed(evt -> {
             if (evt.getCode() == KeyCode.F11) {
                 settingsStage.setFullScreen(!settingsStage.isFullScreen());
@@ -132,6 +104,76 @@ public class SettingsForm {
         settingsStage.setMinWidth(800);
         settingsStage.setMinHeight(600);
         settingsStage.show();
+    }
+
+    private void handleChangeUsername(Stage owner) {
+        String newName = askInput("Нове ім'я користувача:", owner);
+        if (newName == null) return;
+
+        String err = validator.validateUsername(newName, currentUser.getUsername());
+        if (err != null) {
+            MessageBox.show("Помилка", err);
+            return;
+        }
+
+        currentUser.setUsername(newName);
+        userDao.updateUser(currentUser);
+        MessageBox.show("Успіх", "Ім'я оновлено успішно");
+    }
+
+    private void handleChangeEmail(Stage owner) {
+        String newEmail = askInput("Нова електронна пошта:", owner);
+        if (newEmail == null) return;
+
+        String err = validator.validateEmail(newEmail, currentUser.getEmail());
+        if (err != null) {
+            MessageBox.show("Помилка", err);
+            return;
+        }
+
+        currentUser.setEmail(newEmail);
+        userDao.updateUser(currentUser);
+        MessageBox.show("Успіх", "Email оновлено успішно");
+    }
+
+    private void handleChangePassword(Stage owner) {
+        String newPass = askInput("Новий пароль:", owner);
+        if (newPass == null) return;
+
+        String err = validator.validatePassword(newPass);
+        if (err != null) {
+            MessageBox.show("Помилка", err);
+            return;
+        }
+
+        currentUser.setPasswordHash(PasswordUtil.hashPassword(newPass));
+        userDao.updateUser(currentUser);
+        MessageBox.show("Успіх", "Пароль оновлено успішно");
+    }
+
+    private boolean confirmPassword(Stage owner) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Підтвердження пароля");
+        dialog.setHeaderText("Введіть поточний пароль");
+        dialog.initOwner(owner);
+
+        var res = dialog.showAndWait();
+        if (res.isEmpty()) return false;
+
+        String inputHash = PasswordUtil.hashPassword(res.get());
+        if (!inputHash.equals(currentUser.getPasswordHash())) {
+            MessageBox.show("Помилка", "Невірний пароль");
+            return false;
+        }
+        return true;
+    }
+
+    private String askInput(String msg, Stage owner) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Зміна значення");
+        dialog.setHeaderText(msg);
+        dialog.initOwner(owner);
+        return dialog.showAndWait().orElse(null);
     }
 
     /**

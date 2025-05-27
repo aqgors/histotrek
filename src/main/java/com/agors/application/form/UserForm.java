@@ -9,8 +9,12 @@ import com.agors.domain.entity.User;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.infrastructure.persistence.impl.FavoriteDaoImpl;
 import com.agors.infrastructure.persistence.impl.ReviewDaoImpl;
+import com.agors.infrastructure.persistence.impl.SessionDaoImpl;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
 
+import com.agors.infrastructure.util.ConnectionHolder;
+import com.agors.infrastructure.util.ConnectionManager;
+import com.agors.infrastructure.util.SessionContext;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -133,16 +137,35 @@ public class UserForm {
         ContextMenu menu = new ContextMenu();
         MenuItem settings = new MenuItem("Settings");
         MenuItem logout = new MenuItem("Logout");
+
         settings.setOnAction(e -> {
             Stage settingsStage = new Stage();
             new SettingsForm(primaryStage).show(settingsStage);
         });
+
         logout.setOnAction(e -> {
+            User currentUser = SessionContext.getCurrentUser();
+            if (currentUser != null) {
+                try {
+                    var conn = ConnectionManager.getConnection();
+                    ConnectionHolder.setConnection(conn);
+                    new SessionDaoImpl().deleteByUserId(currentUser.getId());
+                    conn.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                } finally {
+                    ConnectionHolder.clearConnection();
+                }
+            }
+
+            SessionContext.clear();
+
             boolean fs = primaryStage.isFullScreen();
             primaryStage.close();
             new MenuScreen().show(primaryStage);
             primaryStage.setFullScreen(fs);
         });
+
         menu.getItems().addAll(settings, logout);
         profile.setOnMouseClicked(e -> menu.show(profile, Side.BOTTOM, 0, 0));
 

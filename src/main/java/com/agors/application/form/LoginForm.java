@@ -3,6 +3,9 @@ package com.agors.application.form;
 import com.agors.application.window.MessageBox;
 import com.agors.domain.entity.User;
 import com.agors.domain.validation.LoginValidator;
+import com.agors.infrastructure.util.SessionContext;
+import com.agors.infrastructure.persistence.impl.SessionDaoImpl;
+import java.util.UUID;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -118,6 +121,9 @@ public class LoginForm {
         e2.setText(errs.getOrDefault("password", ""));
         if (errs.isEmpty()) {
             User u = new UserDaoImpl().getByUsernameOrEmail(lf.getText());
+            SessionContext.setCurrentUser(u); // зберегли в оперативну сесію
+            String token = UUID.randomUUID().toString();
+            new SessionDaoImpl().createSession(u.getId(), token); // зберегли в БД
             MessageBox.show("Success", "Welcome, " + u.getUsername() + "!");
             stage.close();
             new UserForm().start(owner, u.getId(), stage.isFullScreen());

@@ -31,10 +31,6 @@ public class MessageBox {
 
     /**
      * Відображає модальне вікно з повідомленням.
-     * <p>
-     * Вікно блокує родительську сцену до закриття,
-     * показує заголовок та текст повідомлення,
-     * застосовує анімацію появи.</p>
      *
      * @param title   заголовок вікна повідомлення
      * @param message текст повідомлення для користувача
@@ -66,7 +62,6 @@ public class MessageBox {
         okButton.setStyle("-fx-background-color: #c2b280; -fx-text-fill: white; -fx-background-radius: 8;");
         okButton.setOnMouseEntered(e -> okButton.setStyle("-fx-background-color: #a99e75; -fx-text-fill: white; -fx-background-radius: 8;"));
         okButton.setOnMouseExited(e -> okButton.setStyle("-fx-background-color: #c2b280; -fx-text-fill: white; -fx-background-radius: 8;"));
-
         okButton.setOnAction(e -> dialog.close());
 
         box.getChildren().addAll(titleText, messageText, okButton);
@@ -167,4 +162,11 @@ public class MessageBox {
         return result[0];
     }
 
+    public static void showError(String message) {
+        show("Помилка", message);
+    }
+
+    public static void showInfo(String message) {
+        show("Інформація", message);
+    }
 }

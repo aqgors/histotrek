@@ -14,31 +14,17 @@ import java.sql.Connection;
  * @version 1.0
  */
 public class ConnectionHolder {
-    /** ThreadLocal для зберігання з'єднання на потік */
-    private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
+    private static Connection connection;
 
-    /**
-     * Прив'язує з'єднання до поточного потоку.
-     *
-     * @param connection екземпляр Connection для встановлення
-     */
-    public static void setConnection(Connection connection) {
-        connectionHolder.set(connection);
+    public static void setConnection(Connection conn) {
+        connection = conn;
     }
 
-    /**
-     * Повертає з'єднання, прив'язане до поточного потоку.
-     *
-     * @return екземпляр Connection або null, якщо не встановлено
-     */
     public static Connection getConnection() {
-        return connectionHolder.get();
+        return connection;
     }
 
-    /**
-     * Звільняє з'єднання, прив'язане до поточного потоку.
-     */
     public static void clearConnection() {
-        connectionHolder.remove();
+        connection = null;
     }
 }

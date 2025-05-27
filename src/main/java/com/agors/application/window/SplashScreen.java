@@ -1,5 +1,14 @@
 package com.agors.application.window;
 
+import com.agors.application.form.UserForm;
+import com.agors.infrastructure.util.ConnectionHolder;
+import com.agors.infrastructure.util.ConnectionManager;
+import com.agors.infrastructure.util.PropertiesUtil;
+import com.agors.infrastructure.util.SessionContext;
+import com.agors.domain.entity.User;
+import com.agors.infrastructure.persistence.impl.SessionDaoImpl;
+import com.agors.infrastructure.util.PersistenceInitializer;
+import java.sql.Connection;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -14,28 +23,19 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import java.util.Optional;
+
 /**
  * Клас, що реалізує екран завантаження (splash screen) для застосунку Histotrek.
  * <p>
  * При відображенні показує анімацію пульсації тексту та падаючого піску,
- * після чого переходить на головне меню.
+ * після чого переходить на головне меню або виконує автологін.
  * </p>
- *
- * @author agors
- * @version 1.0
  */
 public class SplashScreen {
-    /**
-     * Вікно splash screen.
-     */
+
     private final Stage stage;
 
-    /**
-     * Створює екземпляр SplashScreen з налаштуванням стилю та сцени.
-     * <p>
-     * Ініціалізує безрамкове вікно, текст та фоновий градієнт.
-     * </p>
-     */
     public SplashScreen() {
         stage = new Stage();
         stage.initStyle(StageStyle.UNDECORATED);
@@ -61,26 +61,48 @@ public class SplashScreen {
     }
 
     /**
-     * Відображає splash screen, а після затримки закриває його та показує наступний екран.
+     * Відображає splash screen, виконує ініціалізацію БД, а після затримки — відкриває відповідне вікно.
      *
-     * @param nextStage вікно головного меню, яке буде показане після завершення анімації
+     * @param nextStage основне вікно, яке буде показане
      */
     public void show(Stage nextStage) {
+        boolean runDdl = Boolean.parseBoolean(PropertiesUtil.get("db.run.ddl", "false"));
+        boolean runDml = Boolean.parseBoolean(PropertiesUtil.get("db.run.dml", "false"));
+
+        if (runDdl || runDml) {
+            PersistenceInitializer.init();
+        }
+
         stage.show();
 
         PauseTransition delay = new PauseTransition(Duration.seconds(2.8));
         delay.setOnFinished(e -> {
             stage.close();
-            Platform.runLater(() -> new MenuScreen().show(nextStage));
+            Platform.runLater(() -> {
+                try {
+                    Connection conn = ConnectionManager.getConnection();
+                    ConnectionHolder.setConnection(conn);
+
+                    Optional<User> userOpt = new SessionDaoImpl().findUserByActiveSession();
+                    if (userOpt.isPresent()) {
+                        User user = userOpt.get();
+                        SessionContext.setCurrentUser(user);
+                        new UserForm().start(nextStage, user.getId(), nextStage.isFullScreen());
+                    } else {
+                        new MenuScreen().show(nextStage);
+                    }
+
+                    conn.close();
+                    ConnectionHolder.clearConnection();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    new MenuScreen().show(nextStage);
+                }
+            });
         });
         delay.play();
     }
 
-    /**
-     * Запускає безкінечну анімацію пульсації тексту.
-     *
-     * @param text текстовий елемент для анімації пульсу
-     */
     private void playTextPulse(Text text) {
         ScaleTransition scaleUp = new ScaleTransition(Duration.seconds(1.5), text);
         scaleUp.setToX(1.05);
@@ -95,11 +117,6 @@ public class SplashScreen {
         pulse.play();
     }
 
-    /**
-     * Запускає безкінечну анімацію частинок піску, які піднімаються вгору та зникають.
-     *
-     * @param sandPane контейнер для частинок піску
-     */
     private void playSandAnimation(Pane sandPane) {
         Timeline sandTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             Circle sand = new Circle(2, Color.web("#000000", 0.6));
