@@ -1,6 +1,5 @@
-package com.agors.application.window;
+package com.agors.application.ui;
 
-import com.agors.application.form.UserForm;
 import com.agors.infrastructure.util.ConnectionHolder;
 import com.agors.infrastructure.util.ConnectionManager;
 import com.agors.infrastructure.util.PropertiesUtil;
@@ -87,7 +86,7 @@ public class SplashScreen {
                     if (userOpt.isPresent()) {
                         User user = userOpt.get();
                         SessionContext.setCurrentUser(user);
-                        new UserForm().start(nextStage, user.getId(), nextStage.isFullScreen());
+                        new UserWindow().start(nextStage, user.getId(), nextStage.isFullScreen());
                     } else {
                         new MenuScreen().show(nextStage);
                     }

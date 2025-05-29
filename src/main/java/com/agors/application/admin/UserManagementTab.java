@@ -1,7 +1,8 @@
-package com.agors.application.window;
+package com.agors.application.admin;
 
 import com.agors.domain.entity.User;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import com.agors.infrastructure.util.I18n;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -10,7 +11,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class UserManagementTab extends VBox {
@@ -25,12 +25,12 @@ public class UserManagementTab extends VBox {
         setAlignment(Pos.TOP_CENTER);
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Пошук користувача...");
+        searchField.setPromptText(I18n.get("user_search_prompt", "Пошук користувача..."));
         searchField.setMaxWidth(300);
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> updateUserList(newVal));
 
-        Label title = new Label("Керування користувачами");
+        Label title = new Label(I18n.get("user_management_title", "Керування користувачами"));
         title.setFont(Font.font("Arial", 18));
 
         userListContainer.setAlignment(Pos.TOP_CENTER);
@@ -81,13 +81,13 @@ public class UserManagementTab extends VBox {
             userDao.updateUser(user);
         });
 
-        Button deleteBtn = new Button("🗑 Видалити");
+        Button deleteBtn = new Button("🗑 " + I18n.get("delete_user_btn", "Видалити"));
         deleteBtn.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
         deleteBtn.setDisable(user.getId() == com.agors.infrastructure.util.SessionContext.getCurrentUser().getId());
 
         deleteBtn.setOnAction(e -> {
             boolean confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Видалити користувача " + user.getUsername() + "?",
+                I18n.get("confirm_delete_user", "Видалити користувача ") + user.getUsername() + "?",
                 ButtonType.YES, ButtonType.NO)
                 .showAndWait().filter(ButtonType.YES::equals).isPresent();
             if (confirm) {

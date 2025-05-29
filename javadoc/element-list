@@ -1,6 +1,6 @@
 com.agors
 com.agors.application.form
-com.agors.application.window
+com.agors.application.ui
 com.agors.domain.entity
 com.agors.domain.validation
 com.agors.infrastructure.persistence.contract

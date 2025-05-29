@@ -1,9 +1,9 @@
-package com.agors.application.window;
+package com.agors.application.admin;
 
 import com.agors.domain.entity.Place;
 import com.agors.domain.validation.PlaceValidator;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
-import java.util.Map;
+import com.agors.infrastructure.util.I18n;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -13,8 +13,9 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
+import java.text.MessageFormat;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ContentManagementTab extends VBox {
@@ -28,14 +29,14 @@ public class ContentManagementTab extends VBox {
         setSpacing(15);
         setAlignment(Pos.TOP_CENTER);
 
-        Label title = new Label("Керування контентом");
+        Label title = new Label(I18n.get("content_management_title", "Керування контентом"));
         title.setFont(Font.font("Arial", 18));
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Пошук місця...");
+        searchField.setPromptText(I18n.get("search_prompt_place", "Пошук місця..."));
         searchField.setMaxWidth(300);
 
-        Button addBtn = new Button("➕ Додати місце");
+        Button addBtn = new Button(I18n.get("add_place_btn", "➕ Додати місце"));
         addBtn.setOnAction(e -> openAddDialog());
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> updateList(newVal));
@@ -87,7 +88,7 @@ public class ContentManagementTab extends VBox {
 
         deleteBtn.setOnAction(e -> {
             boolean confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Видалити \"" + place.getName() + "\"?",
+                MessageFormat.format(I18n.get("delete_place_confirm", "Видалити \"{0}\"?"), place.getName()),
                 ButtonType.YES, ButtonType.NO)
                 .showAndWait().filter(ButtonType.YES::equals).isPresent();
 
@@ -123,8 +124,8 @@ public class ContentManagementTab extends VBox {
         boolean isEdit = placeToEdit != null;
 
         Dialog<Place> dialog = new Dialog<>();
-        dialog.setTitle(isEdit ? "Редагувати місце" : "Додати місце");
-        dialog.setHeaderText(isEdit ? "Оновіть інформацію про місце" : "Заповніть інформацію про місце");
+        dialog.setTitle(isEdit ? I18n.get("edit_place_title", "Редагувати місце") : I18n.get("add_place_title", "Додати місце"));
+        dialog.setHeaderText(isEdit ? I18n.get("edit_place_header", "Оновіть інформацію про місце") : I18n.get("add_place_header", "Заповніть інформацію про місце"));
 
         TextField nameField = new TextField();
         TextField countryField = new TextField();
@@ -151,11 +152,25 @@ public class ContentManagementTab extends VBox {
         grid.setVgap(5);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        grid.add(new Label("Назва:"), 0, 0);         grid.add(nameField, 1, 0); grid.add(nameError, 1, 1);
-        grid.add(new Label("Країна:"), 0, 2);        grid.add(countryField, 1, 2); grid.add(countryError, 1, 3);
-        grid.add(new Label("Епоха:"), 0, 4);         grid.add(eraField, 1, 4); grid.add(eraError, 1, 5);
-        grid.add(new Label("Опис:"), 0, 6);          grid.add(descField, 1, 6); grid.add(descError, 1, 7);
-        grid.add(new Label("URL зображення:"), 0, 8); grid.add(imageUrlField, 1, 8); grid.add(imageUrlError, 1, 9);
+        grid.add(new Label(I18n.get("label_name", "Назва:")), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(nameError, 1, 1);
+
+        grid.add(new Label(I18n.get("label_country", "Країна:")), 0, 2);
+        grid.add(countryField, 1, 2);
+        grid.add(countryError, 1, 3);
+
+        grid.add(new Label(I18n.get("label_era", "Епоха:")), 0, 4);
+        grid.add(eraField, 1, 4);
+        grid.add(eraError, 1, 5);
+
+        grid.add(new Label(I18n.get("label_description", "Опис:")), 0, 6);
+        grid.add(descField, 1, 6);
+        grid.add(descError, 1, 7);
+
+        grid.add(new Label(I18n.get("label_image_url", "URL зображення:")), 0, 8);
+        grid.add(imageUrlField, 1, 8);
+        grid.add(imageUrlError, 1, 9);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -169,7 +184,11 @@ public class ContentManagementTab extends VBox {
             place.setDescription(descField.getText());
             place.setImageUrl(imageUrlField.getText());
 
-            nameError.setText(""); countryError.setText(""); eraError.setText(""); descError.setText(""); imageUrlError.setText("");
+            nameError.setText("");
+            countryError.setText("");
+            eraError.setText("");
+            descError.setText("");
+            imageUrlError.setText("");
 
             Map<String, String> errors = new PlaceValidator().validate(place);
             if (!errors.isEmpty()) {

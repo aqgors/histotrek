@@ -1,5 +1,6 @@
-package com.agors.application.window;
+package com.agors.application.ui;
 
+import com.agors.infrastructure.util.I18n;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
@@ -56,7 +57,7 @@ public class MessageBox {
         messageText.setWrappingWidth(280);
         messageText.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        Button okButton = new Button("OK");
+        Button okButton = new Button(I18n.get("ok"));
         okButton.setFont(Font.font("Arial", 14));
         okButton.setPrefWidth(100);
         okButton.setStyle("-fx-background-color: #c2b280; -fx-text-fill: white; -fx-background-radius: 8;");
@@ -116,8 +117,8 @@ public class MessageBox {
         HBox buttons = new HBox(20);
         buttons.setAlignment(Pos.CENTER);
 
-        Button yesButton = new Button("Так");
-        Button noButton = new Button("Скасувати");
+        Button yesButton = new Button(I18n.get("yes"));
+        Button noButton = new Button(I18n.get("cancel"));
 
         yesButton.setFont(Font.font("Arial", 14));
         yesButton.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-background-radius: 8;");
@@ -163,10 +164,10 @@ public class MessageBox {
     }
 
     public static void showError(String message) {
-        show("Помилка", message);
+        show(I18n.get("error"), message);
     }
 
     public static void showInfo(String message) {
-        show("Інформація", message);
+        show(I18n.get("info"), message);
     }
 }

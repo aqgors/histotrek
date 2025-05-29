@@ -1,6 +1,6 @@
 package com.agors.infrastructure.util;
 
-import com.agors.infrastructure.util.enums.ThemeType;
+import com.agors.domain.enums.ThemeType;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;

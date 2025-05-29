@@ -36,7 +36,7 @@ public class PersistenceInitializer {
     public static void init() {
         try {
             Connection conn = ConnectionManager.getConnection();
-            ConnectionHolder.setConnection(conn); // ⬅️ зберігаємо зʼєднання для DAO
+            ConnectionHolder.setConnection(conn);
 
             try (Statement stmt = conn.createStatement()) {
                 conn.setAutoCommit(false);

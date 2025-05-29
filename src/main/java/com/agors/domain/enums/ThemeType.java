@@ -1,4 +1,4 @@
-package com.agors.infrastructure.util.enums;
+package com.agors.domain.enums;
 
 public enum ThemeType {
     DEFAULT,

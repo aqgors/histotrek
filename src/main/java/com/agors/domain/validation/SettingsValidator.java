@@ -1,6 +1,7 @@
 package com.agors.domain.validation;
 
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import com.agors.infrastructure.util.I18n;
 
 public class SettingsValidator {
 
@@ -8,39 +9,39 @@ public class SettingsValidator {
 
     public String validateUsername(String newUsername, String currentUsername) {
         if (newUsername == null || newUsername.trim().isEmpty()) {
-            return "Ім'я користувача не може бути порожнім";
+            return I18n.get("username_empty");
         }
         if (!newUsername.matches("[a-zA-Z0-9]{5,30}")) {
-            return "Ім'я має містити лише латинські букви та цифри (5-30 символів)";
+            return I18n.get("username_invalid");
         }
         if (newUsername.equals(currentUsername)) {
-            return "Це вже ваше поточне ім'я користувача";
+            return I18n.get("username_same");
         }
         if (userDao.existsByUsername(newUsername)) {
-            return "Таке ім'я вже використовується";
+            return I18n.get("username_exists");
         }
         return null;
     }
 
     public String validateEmail(String newEmail, String currentEmail) {
         if (newEmail == null || newEmail.trim().isEmpty()) {
-            return "Email не може бути порожнім";
+            return I18n.get("email_empty");
         }
         if (!newEmail.matches("[a-zA-Z0-9.]{6,30}@[a-zA-Z0-9.]+\\.[a-zA-Z]{2,}")) {
-            return "Некоректний формат email";
+            return I18n.get("email_invalid");
         }
         if (!newEmail.equals(currentEmail) && userDao.existsByEmail(newEmail)) {
-            return "Такий email вже зареєстрований";
+            return I18n.get("email_exists");
         }
         return null;
     }
 
     public String validatePassword(String password) {
         if (password == null || password.isEmpty()) {
-            return "Пароль не може бути порожнім";
+            return I18n.get("password_empty");
         }
         if (password.length() < 6) {
-            return "Пароль має бути не менше 6 символів";
+            return I18n.get("password_short");
         }
         return null;
     }

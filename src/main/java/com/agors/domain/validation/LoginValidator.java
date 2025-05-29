@@ -10,7 +10,7 @@ import java.util.Map;
  * Валідатор даних для входу користувача.
  * <p>
  * Перевіряє логін (або email) та пароль, повертає карту помилок,
- * де ключі — це поля вводу, а значення — повідомлення про помилку.
+ * де ключі — це поля вводу, а значення — ключі повідомлень для I18n.
  * Якщо дані валідні, повертається порожня карта.
  * </p>
  *
@@ -24,17 +24,17 @@ public class LoginValidator {
      *
      * @param loginOrEmail логін або email користувача
      * @param rawPassword  пароль у відкритому вигляді
-     * @return Map помилок: ключі "login" та "password" з повідомленнями; пустий, якщо без помилок
+     * @return Map помилок: ключі "login" та "password" з ключами повідомлень; пустий, якщо без помилок
      */
     public static Map<String, String> validate(String loginOrEmail, String rawPassword) {
         Map<String, String> errors = new HashMap<>();
 
         if (loginOrEmail == null || loginOrEmail.isBlank()) {
-            errors.put("login", "Введіть логін або email");
+            errors.put("login", "error_login_required");
         }
 
         if (rawPassword == null || rawPassword.isBlank()) {
-            errors.put("password", "Введіть пароль");
+            errors.put("password", "error_password_required");
         }
 
         if (errors.isEmpty()) {
@@ -42,11 +42,11 @@ public class LoginValidator {
             User user = dao.getByUsernameOrEmail(loginOrEmail);
 
             if (user == null) {
-                errors.put("login", "Користувача не знайдено");
+                errors.put("login", "error_user_not_found");
             } else {
                 String hashed = PasswordUtil.hashPassword(rawPassword);
                 if (!hashed.equals(user.getPasswordHash())) {
-                    errors.put("password", "Невірний пароль");
+                    errors.put("password", "error_wrong_password");
                 }
             }
         }

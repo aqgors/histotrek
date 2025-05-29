@@ -1,8 +1,7 @@
-package com.agors.application.form;
+package com.agors.application.admin;
 
-import com.agors.application.window.ReportManagementTab;
-import com.agors.application.window.UserManagementTab;
-import com.agors.application.window.ContentManagementTab;
+import com.agors.application.ui.SettingsWindow;
+import com.agors.infrastructure.util.I18n;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -11,35 +10,35 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-public class AdminForm {
+public class AdminWindow {
 
     private final Stage previousStage;
 
-    public AdminForm(Stage previousStage) {
+    public AdminWindow(Stage previousStage) {
         this.previousStage = previousStage;
     }
 
     public void show(Stage adminStage) {
         TabPane tabPane = new TabPane();
 
-        Tab usersTab = new Tab("Користувачі", new UserManagementTab());
+        Tab usersTab = new Tab(I18n.get("admin_tab_users", "Users"), new UserManagementTab());
         usersTab.setClosable(false);
 
-        Tab contentTab = new Tab("Контент", new ContentManagementTab());
+        Tab contentTab = new Tab(I18n.get("admin_tab_content", "Content"), new ContentManagementTab());
         contentTab.setClosable(false);
 
-        Tab reportsTab = new Tab("Звіти", new ReportManagementTab());
+        Tab reportsTab = new Tab(I18n.get("admin_tab_reports", "Reports"), new ReportManagementTab());
         reportsTab.setClosable(false);
 
         tabPane.getTabs().addAll(usersTab, contentTab, reportsTab);
 
-        Button backBtn = new Button("↩ Назад");
+        Button backBtn = new Button(I18n.get("back_button", "↩ Back"));
         backBtn.setFont(Font.font("Arial", 14));
         backBtn.setOnAction(e -> {
             adminStage.close();
             previousStage.close();
             Stage newSettingsStage = new Stage();
-            new SettingsForm(newSettingsStage).show(newSettingsStage);
+            new SettingsWindow(newSettingsStage).show(newSettingsStage);
         });
 
         HBox topBar = new HBox(backBtn);
@@ -50,7 +49,7 @@ public class AdminForm {
         root.setCenter(tabPane);
 
         Scene scene = new Scene(root, 900, 600);
-        adminStage.setTitle("Адмін-панель");
+        adminStage.setTitle(I18n.get("admin_panel_title", "Admin Panel"));
         adminStage.setScene(scene);
         adminStage.show();
     }

@@ -1,9 +1,10 @@
-package com.agors.application.form;
+package com.agors.application.ui;
 
-import com.agors.application.window.MenuScreen;
-import com.agors.application.window.MessageBox;
+import com.agors.application.auth.LoginWindow;
+import com.agors.application.auth.SignupWindow;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.domain.entity.Place;
+import com.agors.infrastructure.util.I18n;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
  * @author agors
  * @version 1.0
  */
-public class GuestForm {
+public class GuestWindow {
 
     /** Контейнер для карток місць */
     private FlowPane cardsFlow;
@@ -66,12 +67,12 @@ public class GuestForm {
             new MenuScreen().show(primaryStage);
         });
 
-        Label titleLabel = new Label("HISTOTREK");
+        Label titleLabel = new Label(I18n.get("app_title", "HISTOTREK"));
         titleLabel.setFont(Font.font("Arial", 26));
         titleLabel.setTextFill(Color.web("#3e2723"));
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Search...");
+        searchField.setPromptText(I18n.get("search_prompt", "Search..."));
         searchField.setMaxWidth(280);
         searchField.setFont(Font.font("Arial", 14));
         searchField.textProperty().addListener((obs, o, n) -> filterPlaces(n));
@@ -81,20 +82,20 @@ public class GuestForm {
         HBox.setHgrow(spacerLeft, Priority.ALWAYS);
         HBox.setHgrow(spacerRight, Priority.ALWAYS);
 
-        Button loginButton = createActionButton("LOGIN");
+        Button loginButton = createActionButton(I18n.get("log_in_guest_form"));
         loginButton.setOnAction(e -> {
             Stage loginStage = new Stage();
             loginStage.setFullScreen(wasFull);
             primaryStage.hide();
-            new LoginForm().show(loginStage, primaryStage);
+            new LoginWindow().show(loginStage, primaryStage);
         });
 
-        Button signupButton = createActionButton("SIGNUP");
+        Button signupButton = createActionButton(I18n.get("sign_up_guest"));
         signupButton.setOnAction(e -> {
             Stage signupStage = new Stage();
             signupStage.setFullScreen(wasFull);
             primaryStage.hide();
-            new SignupForm().show(signupStage, primaryStage);
+            new SignupWindow().show(signupStage, primaryStage);
         });
 
         HBox authButtons = new HBox(10, loginButton, signupButton);
@@ -131,7 +132,7 @@ public class GuestForm {
         primaryStage.setFullScreenExitHint("");
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Histotrek");
+        primaryStage.setTitle(I18n.get("app_title", "Histotrek"));
         primaryStage.setFullScreen(wasFull);
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
@@ -140,13 +141,7 @@ public class GuestForm {
         loadCards();
     }
 
-    /**
-     * Створює кнопку для повернення назад у головне меню.
-     *
-     * @return стилізована кнопка Back
-     */
     private Button createBackButton() {
-
         StackPane circle = new StackPane();
         circle.setPrefSize(36, 36);
         circle.setStyle(
@@ -174,17 +169,11 @@ public class GuestForm {
         exit.setToY(1.0);
 
         btn.setOnMouseEntered(e -> enter.playFromStart());
-        btn.setOnMouseExited(e  -> exit.playFromStart());
+        btn.setOnMouseExited(e -> exit.playFromStart());
 
         return btn;
     }
 
-    /**
-     * Створює кнопку дії (LOGIN або SIGNUP) з hover-ефектом.
-     *
-     * @param text текст на кнопці
-     * @return налаштований Button
-     */
     private Button createActionButton(String text) {
         Button btn = new Button(text);
         btn.setFont(Font.font("Arial", 14));
@@ -226,11 +215,6 @@ public class GuestForm {
         return btn;
     }
 
-    /**
-     * Обгортає FlowPane з картками у ScrollPane.
-     *
-     * @return VBox, що містить прокручуваний контейнер карток
-     */
     private VBox wrapCards() {
         cardsFlow = new FlowPane(20, 20);
         cardsFlow.setPadding(new Insets(20));
@@ -242,30 +226,16 @@ public class GuestForm {
         return new VBox(scrollPane);
     }
 
-    /**
-     * Завантажує всі місця з БД та відображає їх.
-     */
     private void loadCards() {
         allPlaces = new PlaceDaoImpl().findAll();
         showCards(allPlaces);
     }
 
-    /**
-     * Відображає список місць у вигляді карток.
-     *
-     * @param places список місць
-     */
     private void showCards(List<Place> places) {
         cardsFlow.getChildren().clear();
         places.forEach(p -> cardsFlow.getChildren().add(createCard(p)));
     }
 
-    /**
-     * Фільтрує список місць за запитом користувача
-     * та оновлює картки.
-     *
-     * @param query рядок пошуку
-     */
     private void filterPlaces(String query) {
         String lower = query.toLowerCase();
         List<Place> filtered = allPlaces.stream()
@@ -276,12 +246,6 @@ public class GuestForm {
         showCards(filtered);
     }
 
-    /**
-     * Створює картку з інформацією про місце.
-     *
-     * @param place об'єкт Place
-     * @return VBox-картка з зображенням, назвою, локацією та описом
-     */
     private VBox createCard(Place place) {
         VBox card = new VBox(10);
         card.setPadding(new Insets(10));
@@ -320,27 +284,21 @@ public class GuestForm {
             img.setImage(new Image(place.getImageUrl(), true));
             card.getChildren().add(img);
         } catch (Exception ex) {
-            card.getChildren().add(new Label("Image not available"));
+            card.getChildren().add(new Label(I18n.get("image_not_available")));
         }
 
         card.getChildren().addAll(title, location, era, desc);
 
         card.setOnMouseClicked(e -> {
             MessageBox.show(
-                "🔒 Обмежений доступ",
-                "Щоб оцінювати місця, залишати відгуки та додавати у вибране — увійдіть або зареєструйтесь."
+                I18n.get("restricted_access_title"),
+                I18n.get("restricted_access_message")
             );
         });
 
         return card;
     }
 
-    /**
-     * Анімація наведення на картку: зміна масштабу та стилю.
-     *
-     * @param card  картка для анімації
-     * @param hover true якщо мишка над карткою
-     */
     private void hoverCard(VBox card, boolean hover) {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
         st.setToX(hover ? 1.05 : 1.0);
@@ -356,11 +314,6 @@ public class GuestForm {
         );
     }
 
-    /**
-     * Запускає фонову анімацію падаючого піску.
-     *
-     * @param sandPane Pane, на якому анімуються частинки
-     */
     private void playSandAnimation(Pane sandPane) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = sandPane.getWidth(), h = sandPane.getHeight();

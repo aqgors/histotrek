@@ -1,6 +1,6 @@
 package com.agors;
 
-import com.agors.application.window.SplashScreen;
+import com.agors.application.ui.SplashScreen;
 import javafx.application.Application;
 import javafx.stage.Stage;
 

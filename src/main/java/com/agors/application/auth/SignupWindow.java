@@ -1,9 +1,10 @@
-package com.agors.application.form;
+package com.agors.application.auth;
 
-import com.agors.application.window.MessageBox;
+import com.agors.application.ui.MessageBox;
 import com.agors.domain.entity.User;
 import com.agors.domain.validation.SignupValidator;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import com.agors.infrastructure.util.I18n;
 import com.agors.infrastructure.util.PasswordUtil;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -22,47 +23,30 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-/**
- * Форма реєстрації нового користувача.
- * <p>
- * Відображає поля для введення логіну, email та пароля,
- * перевіряє їх через SignupValidator, створює запис у БД
- * та показує підтвердження через MessageBox.
- * </p>
- *
- * @author agors
- * @version 1.0
- */
-public class SignupForm {
+public class SignupWindow {
 
-    /**
-     * Показує форму реєстрації у новому вікні.
-     *
-     * @param stage об’єкт Stage для цієї форми
-     * @param owner батьківське вікно, до якого повернутись
-     */
     public void show(Stage stage, Stage owner) {
         stage.initOwner(owner);
         stage.setFullScreen(owner.isFullScreen());
         stage.setFullScreenExitHint("");
-        stage.setTitle("Sign up");
+        stage.setTitle(I18n.get("sign_up_title"));
 
-        TextField userField    = styledField("Username");
-        TextField emailField   = styledField("Email");
-        PasswordField passField = (PasswordField) styledField("Password");
+        TextField userField  = styledField(I18n.get("signup_username"));
+        TextField emailField = styledField(I18n.get("signup_email"));
+        PasswordField passField = styledPasswordField(I18n.get("signup_password"));
 
         Label userErr  = errorLabel();
         Label emailErr = errorLabel();
         Label passErr  = errorLabel();
 
         Button submit = styledButton(
-            "Create an account",
+            I18n.get("create_account"),
             "-fx-background-color:#c2b280;",
             e -> handleSubmit(userField, emailField, passField, userErr, emailErr, passErr)
         );
 
         Button back = styledButton(
-            "Back",
+            I18n.get("sign_up_back"),
             "-fx-background-color:transparent;",
             e -> handleBack(stage, owner)
         );
@@ -75,7 +59,7 @@ public class SignupForm {
         );
         fields.setAlignment(Pos.CENTER);
 
-        Text title = new Text("Sign up");
+        Text title = new Text(I18n.get("sign_up_title"));
         title.setFont(Font.font("Arial", 32));
         title.setFill(Color.web("#3e2723"));
         title.setEffect(new DropShadow(3, Color.rgb(0, 0, 0, 0.15)));
@@ -99,8 +83,6 @@ public class SignupForm {
                 stage.setFullScreen(!stage.isFullScreen());
             }
         });
-        stage.setFullScreenExitHint("");
-
         stage.setScene(scene);
         stage.setMinWidth(800);
         stage.setMinHeight(600);
@@ -108,10 +90,6 @@ public class SignupForm {
         formBox.requestFocus();
     }
 
-    /**
-     * Обробляє натискання кнопки "Create an account":
-     * валідовує поля, створює користувача в БД та показує повідомлення.
-     */
     private void handleSubmit(
         TextField userField,
         TextField emailField,
@@ -125,9 +103,9 @@ public class SignupForm {
             emailField.getText(),
             passField.getText()
         );
-        userErr.setText(errs.getOrDefault("username", ""));
-        emailErr.setText(errs.getOrDefault("email", ""));
-        passErr.setText(errs.getOrDefault("password", ""));
+        userErr.setText(I18n.getOrDefault(errs.get("username")));
+        emailErr.setText(I18n.getOrDefault(errs.get("email")));
+        passErr.setText(I18n.getOrDefault(errs.get("password")));
         if (errs.isEmpty()) {
             User u = new User();
             u.setUsername(userField.getText());
@@ -135,31 +113,34 @@ public class SignupForm {
             u.setPasswordHash(PasswordUtil.hashPassword(passField.getText()));
             u.setRole("USER");
             new UserDaoImpl().addUser(u);
-            MessageBox.show("Success", "Registration was successful!");
+            MessageBox.show(I18n.get("sign_up_success"), I18n.get("registration_success"));
             userField.clear();
             emailField.clear();
             passField.clear();
         }
     }
 
-    /**
-     * Обробляє натискання кнопки "Back": повертає попереднє вікно.
-     */
     private void handleBack(Stage stage, Stage owner) {
         owner.setFullScreen(stage.isFullScreen());
         stage.close();
         owner.show();
     }
 
-    /**
-     * Створює стилізоване поле введення з підказкою.
-     *
-     * @param prompt текст-підказка всередині поля
-     * @return налаштований TextField або PasswordField
-     */
     private TextField styledField(String prompt) {
-        TextField f = prompt.equals("Password") ? new PasswordField() : new TextField();
+        TextField f = new TextField();
         f.setPromptText(prompt);
+        applyFieldStyle(f);
+        return f;
+    }
+
+    private PasswordField styledPasswordField(String prompt) {
+        PasswordField f = new PasswordField();
+        f.setPromptText(prompt);
+        applyFieldStyle(f);
+        return f;
+    }
+
+    private void applyFieldStyle(TextField f) {
         f.setMaxWidth(320);
         f.setPrefHeight(45);
         f.setFont(Font.font("Arial", 14));
@@ -170,12 +151,8 @@ public class SignupForm {
                 + "-fx-border-radius:8;"
                 + "-fx-padding:0 10;"
         );
-        return f;
     }
 
-    /**
-     * Створює порожню мітку для виводу повідомлень про помилки.
-     */
     private Label errorLabel() {
         Label l = new Label();
         l.setFont(Font.font("Arial", 12));
@@ -185,14 +162,6 @@ public class SignupForm {
         return l;
     }
 
-    /**
-     * Створює стилізовану кнопку з hover-ефектом.
-     *
-     * @param text       текст на кнопці
-     * @param baseStyle  базовий CSS-стиль
-     * @param handler    обробник натискання
-     * @return налаштований Button
-     */
     private Button styledButton(
         String text,
         String baseStyle,
@@ -212,11 +181,6 @@ public class SignupForm {
         return b;
     }
 
-    /**
-     * Запускає анімацію падаючого піску у фоновому шарі.
-     *
-     * @param p Pane, на якому показуються частинки піску
-     */
     private void animateSand(Pane p) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = p.getWidth(), h = p.getHeight();
@@ -234,12 +198,6 @@ public class SignupForm {
         tl.play();
     }
 
-    /**
-     * Прив'язує розміри Pane до розмірів Scene.
-     *
-     * @param p панель, яку слід зв’язати
-     * @param s сцена, розміри якої використовуються
-     */
     private void bindSize(Pane p, Scene s) {
         p.prefWidthProperty().bind(s.widthProperty());
         p.prefHeightProperty().bind(s.heightProperty());

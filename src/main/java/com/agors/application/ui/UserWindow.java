@@ -1,10 +1,8 @@
-package com.agors.application.form;
+package com.agors.application.ui;
 
-import com.agors.application.window.MenuScreen;
 import com.agors.domain.entity.Place;
 import com.agors.domain.entity.Favorite;
 import com.agors.domain.entity.Review;
-import com.agors.application.window.MessageBox;
 import com.agors.domain.entity.User;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.infrastructure.persistence.impl.FavoriteDaoImpl;
@@ -16,7 +14,8 @@ import com.agors.infrastructure.util.ConnectionHolder;
 import com.agors.infrastructure.util.ConnectionManager;
 import com.agors.infrastructure.util.SessionContext;
 import com.agors.infrastructure.util.ThemeManager;
-import com.agors.infrastructure.util.enums.ThemeType;
+import com.agors.infrastructure.util.I18n;
+import com.agors.domain.enums.ThemeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -40,7 +39,7 @@ import javafx.scene.text.Font;
 import javafx.stage.*;
 import javafx.util.Duration;
 
-public class UserForm {
+public class UserWindow {
 
     private final PlaceDaoImpl placeDaoImpl = new PlaceDaoImpl();
     private final FavoriteDaoImpl favoriteDaoImpl = new FavoriteDaoImpl();
@@ -66,8 +65,8 @@ public class UserForm {
         HBox topBar = createTopBar();
 
         TabPane tabPane = new TabPane();
-        Tab allTab = new Tab("All"); allTab.setClosable(false);
-        Tab favTab = new Tab("Favorites"); favTab.setClosable(false);
+        Tab allTab = new Tab(I18n.get("all_tab", "All")); allTab.setClosable(false);
+        Tab favTab = new Tab(I18n.get("favorites_tab", "Favorites")); favTab.setClosable(false);
 
         allFlow = createFlow();
         favFlow = createFlow();
@@ -112,7 +111,7 @@ public class UserForm {
         });
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Histotrek");
+        primaryStage.setTitle(I18n.get("app_title", "Histotrek"));
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
         primaryStage.show();
@@ -165,13 +164,13 @@ public class UserForm {
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(10));
 
-        titleLabel = new Label("HISTOTREK");
+        titleLabel = new Label(I18n.get("app_title_user", "HISTOTREK"));
         titleLabel.setFont(Font.font("Arial", 26));
         updateTitleColor();
 
         TextField search = new TextField();
         search.setId("searchField");
-        search.setPromptText("Search...");
+        search.setPromptText(I18n.get("search_prompt_user", "Search..."));
         search.setMaxWidth(280);
         search.setFont(Font.font("Arial", 14));
 
@@ -184,12 +183,12 @@ public class UserForm {
         profile.setStyle("-fx-background-color: transparent; -fx-padding: 4;");
 
         ContextMenu menu = new ContextMenu();
-        MenuItem settings = new MenuItem("Settings");
-        MenuItem logout = new MenuItem("Logout");
+        MenuItem settings = new MenuItem(I18n.get("settings_user", "Settings"));
+        MenuItem logout = new MenuItem(I18n.get("logout", "Logout"));
 
         settings.setOnAction(e -> {
             Stage settingsStage = new Stage();
-            new SettingsForm(primaryStage).show(settingsStage);
+            new SettingsWindow(primaryStage).show(settingsStage);
         });
 
         logout.setOnAction(e -> {
@@ -283,13 +282,14 @@ public class UserForm {
             img.setFitWidth(230);
             img.setFitHeight(150);
             card.getChildren().add(img);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            card.getChildren().add(new Label(I18n.get("image_not_available_user", "Image not available")));
+        }
 
         Label nameLbl = new Label(place.getName());
         nameLbl.setFont(Font.font(16));
         nameLbl.setTextFill(Color.web("#1a3e2b"));
 
-        // Середній рейтинг
         ReviewDaoImpl reviewDao = new ReviewDaoImpl();
         List<Review> reviews = reviewDao.findByPlace(place.getId());
         double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
@@ -309,8 +309,14 @@ public class UserForm {
 
         card.getChildren().addAll(nameLbl, ratingLbl, infoBox);
 
-        card.setOnMouseEntered(e -> { hoverCard(card, true); infoBox.setVisible(true); });
-        card.setOnMouseExited(e -> { hoverCard(card, false); infoBox.setVisible(false); });
+        card.setOnMouseEntered(e -> {
+            hoverCard(card, true);
+            infoBox.setVisible(true);
+        });
+        card.setOnMouseExited(e -> {
+            hoverCard(card, false);
+            infoBox.setVisible(false);
+        });
 
         card.setOnMouseClicked(e -> showCardDetails(place));
 
@@ -385,7 +391,9 @@ public class UserForm {
             reviewListBox.getChildren().clear();
             List<Review> updated = reviewDao.findByPlace(place.getId());
             double avg = updated.stream().mapToInt(Review::getRating).average().orElse(0.0);
-            avgRatingLabel.setText("★ Середній бал: " + String.format("%.1f", avg));
+            avgRatingLabel.setText(
+                I18n.get("avg_rating_label", "★ Average rating: ") + String.format("%.1f", avg)
+            );
 
             for (Review r : updated) {
                 VBox reviewCard = new VBox(4);
@@ -414,7 +422,7 @@ public class UserForm {
 
                 if (canEdit || canDelete) {
                     if (canEdit) {
-                        Button editBtn = new Button("✏️");
+                        Button editBtn = new Button(I18n.get("edit_btn", "✏️"));
                         editBtn.setStyle("-fx-background-color: transparent;");
                         editBtn.setOnAction(e -> {
                             TextArea editArea = new TextArea(r.getText());
@@ -451,7 +459,7 @@ public class UserForm {
                                 editStarBox.getChildren().add(s);
                             }
 
-                            Button saveBtn = new Button("💾 Зберегти");
+                            Button saveBtn = new Button(I18n.get("save_btn", "💾 Save"));
                             saveBtn.setStyle("-fx-background-color: #3e2723; -fx-text-fill: white;");
                             saveBtn.setOnAction(ev -> {
                                 r.setText(editArea.getText().trim());
@@ -467,10 +475,13 @@ public class UserForm {
                     }
 
                     if (canDelete) {
-                        Button delBtn = new Button("🗑");
+                        Button delBtn = new Button(I18n.get("delete_btn", "🗑"));
                         delBtn.setStyle("-fx-background-color: transparent;");
                         delBtn.setOnAction(e -> {
-                            if (MessageBox.showConfirm("Підтвердження", "Видалити цей відгук?")) {
+                            if (MessageBox.showConfirm(
+                                I18n.get("confirm_title", "Confirmation"),
+                                I18n.get("confirm_delete_review", "Delete this review?")
+                            )) {
                                 reviewDao.remove(r.getId());
                                 updateReviewsList[0].run();
                                 Platform.runLater(() -> contentScroll.setVvalue(scrollPos));
@@ -512,17 +523,20 @@ public class UserForm {
         }
 
         TextArea commentArea = new TextArea();
-        commentArea.setPromptText("Напишіть свій відгук...");
+        commentArea.setPromptText(I18n.get("write_review_prompt", "Write your review..."));
         commentArea.setWrapText(true);
         commentArea.setPrefRowCount(3);
         commentArea.setMaxWidth(400);
 
-        Button sendReview = new Button("Надіслати відгук");
+        Button sendReview = new Button(I18n.get("send_review_btn", "Send Review"));
         sendReview.setFont(Font.font("Arial", 14));
         sendReview.setStyle("-fx-background-color: #3e2723; -fx-text-fill: white; -fx-background-radius: 8;");
         sendReview.setOnAction(e -> {
             if (currentRating[0] == 0 || commentArea.getText().trim().isEmpty()) {
-                MessageBox.show("Помилка", "Будь ласка, поставте оцінку та заповніть поле відгуку.");
+                MessageBox.show(
+                    I18n.get("error_title", "Error"),
+                    I18n.get("error_review_fill", "Please rate and fill review text.")
+                );
                 return;
             }
 
@@ -544,26 +558,28 @@ public class UserForm {
         });
 
         VBox reviewBlock = new VBox(10,
-            new Label("Оцініть місце:"), starBox,
+            new Label(I18n.get("rate_place_label", "Rate this place:")), starBox,
             commentArea, sendReview,
-            new Label("Всі відгуки:"), reviewListBox
+            new Label(I18n.get("all_reviews_label", "All reviews:")), reviewListBox
         );
         reviewBlock.setPadding(new Insets(10));
         reviewBlock.setMaxWidth(450);
         reviewBlock.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;");
 
         boolean isFav = favoriteDao.isFavorite(currentUserId, place.getId());
-        Button favoriteBtn = new Button(isFav ? "✅ У вибраних" : "Додати в обране ❤");
+        Button favoriteBtn = new Button(isFav
+            ? I18n.get("favorite_yes", "✅ In favorites")
+            : I18n.get("favorite_no", "Add to favorites ❤"));
         favoriteBtn.setFont(Font.font(14));
         favoriteBtn.setStyle("-fx-background-color: #e29264; -fx-text-fill: white; -fx-background-radius: 8;");
         favoriteBtn.setOnAction(e -> {
             if (favoriteDao.isFavorite(currentUserId, place.getId())) {
                 favoriteDao.remove(currentUserId, place.getId());
-                favoriteBtn.setText("Додати в обране ❤");
+                favoriteBtn.setText(I18n.get("favorite_no", "Add to favorites ❤"));
                 loadCards(favFlow, getFavoritePlaces());
             } else {
                 favoriteDao.addToFavorites(currentUserId, place.getId());
-                favoriteBtn.setText("✅ У вибраних");
+                favoriteBtn.setText(I18n.get("favorite_yes", "✅ In favorites"));
                 loadCards(favFlow, getFavoritePlaces());
             }
         });

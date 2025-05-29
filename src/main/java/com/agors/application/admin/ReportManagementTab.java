@@ -1,9 +1,10 @@
-package com.agors.application.window;
+package com.agors.application.admin;
 
 import com.agors.domain.entity.Report;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.infrastructure.persistence.impl.ReportDaoImpl;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
+import com.agors.infrastructure.util.I18n;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.print.PrinterJob;
@@ -28,10 +29,10 @@ public class ReportManagementTab extends VBox {
         setPadding(new Insets(20));
         setSpacing(15);
 
-        Label title = new Label("Звіти");
+        Label title = new Label(I18n.get("reports_title", "Звіти"));
         title.setFont(Font.font("Arial", 18));
 
-        Button generateBtn = new Button("📝 Згенерувати звіт");
+        Button generateBtn = new Button(I18n.get("generate_report_btn", "📝 Згенерувати звіт"));
         generateBtn.setOnAction(e -> generateReport());
 
         reportList.setPadding(new Insets(10));
@@ -46,22 +47,24 @@ public class ReportManagementTab extends VBox {
         StringBuilder content = new StringBuilder();
 
         String timestamp = LocalDateTime.now().toString();
-        content.append("==== Звіт станом на ").append(timestamp).append(" ====\n\n");
+        content.append(I18n.get("report_header", "==== Звіт станом на "))
+            .append(timestamp)
+            .append(" ====\n\n");
 
-        content.append("▶ КОРИСТУВАЧІ:\n");
+        content.append(I18n.get("users_section", "▶ КОРИСТУВАЧІ:\n"));
         content.append("--------------------------------------------------\n");
         new UserDaoImpl().getAllUsers().forEach(u ->
             content.append("• ").append(u.getUsername())
                 .append("\n   Email: ").append(u.getEmail())
-                .append("\n   Роль: ").append(u.getRole()).append("\n\n")
+                .append("\n   ").append(I18n.get("role_label", "Роль: ")).append(u.getRole()).append("\n\n")
         );
 
-        content.append("▶ ІСТОРИЧНІ МІСЦЯ:\n");
+        content.append(I18n.get("places_section", "▶ ІСТОРИЧНІ МІСЦЯ:\n"));
         content.append("--------------------------------------------------\n");
         new PlaceDaoImpl().findAll().forEach(p ->
             content.append("• ").append(p.getName())
-                .append("\n   Країна: ").append(p.getCountry())
-                .append("\n   Епоха: ").append(p.getEra()).append("\n\n")
+                .append("\n   ").append(I18n.get("country_label", "Країна: ")).append(p.getCountry())
+                .append("\n   ").append(I18n.get("era_label", "Епоха: ")).append(p.getEra()).append("\n\n")
         );
 
         Report report = new Report();
@@ -79,27 +82,27 @@ public class ReportManagementTab extends VBox {
 
         for (Report r : reports) {
             TitledPane pane = new TitledPane();
-            pane.setText("Звіт #" + r.getId() + " (" + r.getGeneratedAt() + ")");
+            pane.setText(I18n.get("report_title", "Звіт") + " #" + r.getId() + " (" + r.getGeneratedAt() + ")");
 
             TextArea area = new TextArea(r.getContent());
             area.setWrapText(true);
             area.setEditable(false);
 
-            Button saveTxtBtn = new Button("💾 TXT");
+            Button saveTxtBtn = new Button(I18n.get("save_txt_btn", "💾 TXT"));
             saveTxtBtn.setOnAction(e -> saveAsTxt(r));
 
-            Button saveDocxBtn = new Button("📃 DOCX");
+            Button saveDocxBtn = new Button(I18n.get("save_docx_btn", "📃 DOCX"));
             saveDocxBtn.setOnAction(e -> saveAsDocx(r));
 
-            Button printBtn = new Button("🖨 Друк");
+            Button printBtn = new Button(I18n.get("print_btn", "🖨 Друк"));
             printBtn.setOnAction(e -> printReport(r));
 
-            Button deleteBtn = new Button("🗑 Видалити");
+            Button deleteBtn = new Button(I18n.get("delete_btn_report", "🗑 Видалити"));
             deleteBtn.setOnAction(e -> {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("Підтвердження видалення");
-                confirm.setHeaderText("Видалити цей звіт?");
-                confirm.setContentText("Цю дію не можна скасувати.");
+                confirm.setTitle(I18n.get("confirm_delete_title", "Підтвердження видалення"));
+                confirm.setHeaderText(I18n.get("confirm_delete_header", "Видалити цей звіт?"));
+                confirm.setContentText(I18n.get("confirm_delete_content", "Цю дію не можна скасувати."));
                 confirm.showAndWait().ifPresent(result -> {
                     if (result == ButtonType.OK) {
                         reportDao.remove(r.getId());
@@ -121,25 +124,25 @@ public class ReportManagementTab extends VBox {
 
     private void saveAsTxt(Report report) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Зберегти звіт як TXT");
+        fileChooser.setTitle(I18n.get("save_txt_title", "Зберегти звіт як TXT"));
         fileChooser.setInitialFileName("report_" + report.getId() + ".txt");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.get("txt_files", "Text Files"), "*.txt"));
         File file = fileChooser.showSaveDialog(getScene().getWindow());
 
         if (file != null) {
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(report.getContent().getBytes());
             } catch (IOException e) {
-                showError("Помилка збереження TXT", e.getMessage());
+                showError(I18n.get("error_saving_txt_title", "Помилка збереження TXT"), e.getMessage());
             }
         }
     }
 
     private void saveAsDocx(Report report) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Зберегти як DOCX");
+        fileChooser.setTitle(I18n.get("save_docx_title", "Зберегти як DOCX"));
         fileChooser.setInitialFileName("report_" + report.getId() + ".docx");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DOCX файли", "*.docx"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.get("docx_files", "DOCX файли"), "*.docx"));
         File file = fileChooser.showSaveDialog(getScene().getWindow());
 
         if (file != null) {
@@ -157,7 +160,7 @@ public class ReportManagementTab extends VBox {
 
                 doc.write(out);
             } catch (IOException e) {
-                showError("Помилка збереження DOCX", e.getMessage());
+                showError(I18n.get("error_saving_docx_title", "Помилка збереження DOCX"), e.getMessage());
             }
         }
     }
@@ -173,7 +176,7 @@ public class ReportManagementTab extends VBox {
             if (success) {
                 job.endJob();
             } else {
-                showError("Помилка друку", "Не вдалося роздрукувати звіт.");
+                showError(I18n.get("error_print_title", "Помилка друку"), I18n.get("error_print_msg", "Не вдалося роздрукувати звіт."));
             }
         }
     }
