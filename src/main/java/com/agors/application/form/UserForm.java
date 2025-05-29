@@ -15,6 +15,8 @@ import com.agors.infrastructure.persistence.impl.UserDaoImpl;
 import com.agors.infrastructure.util.ConnectionHolder;
 import com.agors.infrastructure.util.ConnectionManager;
 import com.agors.infrastructure.util.SessionContext;
+import com.agors.infrastructure.util.ThemeManager;
+import com.agors.infrastructure.util.enums.ThemeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -43,11 +45,15 @@ public class UserForm {
     private final PlaceDaoImpl placeDaoImpl = new PlaceDaoImpl();
     private final FavoriteDaoImpl favoriteDaoImpl = new FavoriteDaoImpl();
 
+    private Label titleLabel;
     private List<Place> allPlaces;
     private int currentUserId;
     private FlowPane allFlow;
     private FlowPane favFlow;
     private Stage primaryStage;
+    private Pane sand;
+    private StackPane stack;
+    private Scene scene;
 
     public void start(Stage stage, int userId, boolean isFullScreen) {
         this.primaryStage = stage;
@@ -89,12 +95,13 @@ public class UserForm {
         BorderPane root = new BorderPane(tabPane);
         root.setTop(topBar);
 
-        Pane sand = new Pane(); sand.setMouseTransparent(true);
-        playSandAnimation(sand);
-        StackPane stack = new StackPane(sand, root);
-        stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);");
+        sand = new Pane(); sand.setMouseTransparent(true);
+        stack = new StackPane(sand, root);
+        scene = new Scene(stack, 800, 600);
 
-        Scene scene = new Scene(stack, 800, 600);
+        ThemeManager.applyTheme(scene);
+        updateTheme();
+
         sand.prefWidthProperty().bind(scene.widthProperty());
         sand.prefHeightProperty().bind(scene.heightProperty());
 
@@ -109,6 +116,48 @@ public class UserForm {
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
         primaryStage.show();
+
+        ThemeManager.addThemeChangeListener(theme -> {
+            updateTheme();
+            updateTitleColor();
+        });
+    }
+
+    private void updateTheme() {
+        ThemeType theme = ThemeManager.getCurrentTheme();
+        String bgColor;
+
+        switch (theme) {
+            case DARK -> bgColor = "#2b2b2b";
+            case LIGHT -> bgColor = "white";
+            default -> bgColor = "linear-gradient(to bottom right, #fdf6e3, #e29264)";
+        }
+
+        if (stack != null) stack.setStyle("-fx-background-color: " + bgColor + ";");
+
+        if (sand != null) {
+            sand.getChildren().clear();
+            playSandAnimation(sand);
+        }
+    }
+
+    private void playSandAnimation(Pane pane) {
+        Color[] colors = ThemeManager.getSandColors();
+        Timeline tl = new Timeline(
+            new KeyFrame(Duration.millis(100), e -> {
+                Color color = colors[(int)(Math.random() * colors.length)];
+                Circle c = new Circle(2, color);
+                c.setCenterX(Math.random() * pane.getWidth());
+                c.setCenterY(pane.getHeight());
+                pane.getChildren().add(c);
+                TranslateTransition tt = new TranslateTransition(Duration.seconds(4), c);
+                tt.setByY(-pane.getHeight());
+                tt.setByX(Math.random() * 60 - 30);
+                tt.setOnFinished(ev -> pane.getChildren().remove(c));
+                tt.play();
+            }));
+        tl.setCycleCount(Animation.INDEFINITE);
+        tl.play();
     }
 
     private HBox createTopBar() {
@@ -116,9 +165,9 @@ public class UserForm {
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(10));
 
-        Label title = new Label("HISTOTREK");
-        title.setFont(Font.font("Arial", 26));
-        title.setTextFill(Color.web("#3e2723"));
+        titleLabel = new Label("HISTOTREK");
+        titleLabel.setFont(Font.font("Arial", 26));
+        updateTitleColor();
 
         TextField search = new TextField();
         search.setId("searchField");
@@ -169,8 +218,17 @@ public class UserForm {
         menu.getItems().addAll(settings, logout);
         profile.setOnMouseClicked(e -> menu.show(profile, Side.BOTTOM, 0, 0));
 
-        bar.getChildren().addAll(title, left, search, right, profile);
+        bar.getChildren().addAll(titleLabel, left, search, right, profile);
         return bar;
+    }
+
+    private void updateTitleColor() {
+        if (titleLabel == null) return;
+
+        ThemeType theme = ThemeManager.getCurrentTheme();
+        titleLabel.setTextFill(
+            theme == ThemeType.DARK ? Color.WHITE : Color.web("#3e2723")
+        );
     }
 
     private FlowPane createFlow() {
@@ -318,6 +376,9 @@ public class UserForm {
         contentScroll.setFitToWidth(true);
         contentScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
+        User currentUser = SessionContext.getCurrentUser();
+        boolean isAdmin = currentUser != null && "ADMIN".equals(currentUser.getRole());
+
         Runnable[] updateReviewsList = new Runnable[1];
         updateReviewsList[0] = () -> {
             double scrollPos = contentScroll.getVvalue();
@@ -348,69 +409,75 @@ public class UserForm {
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER_RIGHT);
 
-                if (r.getUserId() == currentUserId) {
-                    Button editBtn = new Button("✏️");
-                    Button delBtn = new Button("🗑");
-                    editBtn.setStyle("-fx-background-color: transparent;");
-                    delBtn.setStyle("-fx-background-color: transparent;");
+                boolean canEdit = r.getUserId() == currentUserId;
+                boolean canDelete = canEdit || isAdmin;
 
-                    delBtn.setOnAction(e -> {
-                        if (MessageBox.showConfirm("Підтвердження", "Видалити цей відгук?")) {
-                            reviewDao.remove(r.getId());
-                            updateReviewsList[0].run();
-                            Platform.runLater(() -> contentScroll.setVvalue(scrollPos));
-                        }
-                    });
+                if (canEdit || canDelete) {
+                    if (canEdit) {
+                        Button editBtn = new Button("✏️");
+                        editBtn.setStyle("-fx-background-color: transparent;");
+                        editBtn.setOnAction(e -> {
+                            TextArea editArea = new TextArea(r.getText());
+                            editArea.setWrapText(true);
+                            editArea.setFont(Font.font("Arial", 13));
 
-                    editBtn.setOnAction(e -> {
-                        TextArea editArea = new TextArea(r.getText());
-                        editArea.setWrapText(true);
-                        editArea.setFont(Font.font("Arial", 13));
+                            HBox editStarBox = new HBox(5);
+                            editStarBox.setAlignment(Pos.CENTER_LEFT);
+                            int[] editRating = { r.getRating() };
+                            for (int i = 1; i <= 5; i++) {
+                                Label s = new Label("★");
+                                s.setFont(Font.font("Arial", 18));
+                                s.setTextFill(i <= editRating[0] ? Color.GOLD : Color.LIGHTGRAY);
+                                int starIndex = i;
+                                s.setOnMouseEntered(ev -> {
+                                    for (int j = 0; j < 5; j++) {
+                                        Label star = (Label) editStarBox.getChildren().get(j);
+                                        star.setTextFill(j < starIndex ? Color.GOLD : Color.LIGHTGRAY);
+                                    }
+                                });
+                                s.setOnMouseExited(ev -> {
+                                    for (int j = 0; j < 5; j++) {
+                                        Label star = (Label) editStarBox.getChildren().get(j);
+                                        star.setTextFill(j < editRating[0] ? Color.GOLD : Color.LIGHTGRAY);
+                                    }
+                                });
+                                s.setOnMouseClicked(ev -> {
+                                    editRating[0] = starIndex;
+                                    for (int j = 0; j < 5; j++) {
+                                        Label star = (Label) editStarBox.getChildren().get(j);
+                                        star.setTextFill(j < starIndex ? Color.GOLD : Color.LIGHTGRAY);
+                                    }
+                                });
+                                editStarBox.getChildren().add(s);
+                            }
 
-                        HBox editStarBox = new HBox(5);
-                        editStarBox.setAlignment(Pos.CENTER_LEFT);
-                        int[] editRating = { r.getRating() };
-                        for (int i = 1; i <= 5; i++) {
-                            Label s = new Label("★");
-                            s.setFont(Font.font("Arial", 18));
-                            s.setTextFill(i <= editRating[0] ? Color.GOLD : Color.LIGHTGRAY);
-                            int starIndex = i;
-                            s.setOnMouseEntered(ev -> {
-                                for (int j = 0; j < 5; j++) {
-                                    Label star = (Label) editStarBox.getChildren().get(j);
-                                    star.setTextFill(j < starIndex ? Color.GOLD : Color.LIGHTGRAY);
-                                }
+                            Button saveBtn = new Button("💾 Зберегти");
+                            saveBtn.setStyle("-fx-background-color: #3e2723; -fx-text-fill: white;");
+                            saveBtn.setOnAction(ev -> {
+                                r.setText(editArea.getText().trim());
+                                r.setRating(editRating[0]);
+                                r.setCreatedAt(LocalDateTime.now());
+                                reviewDao.update(r);
+                                updateReviewsList[0].run();
+                                Platform.runLater(() -> contentScroll.setVvalue(scrollPos));
                             });
-                            s.setOnMouseExited(ev -> {
-                                for (int j = 0; j < 5; j++) {
-                                    Label star = (Label) editStarBox.getChildren().get(j);
-                                    star.setTextFill(j < editRating[0] ? Color.GOLD : Color.LIGHTGRAY);
-                                }
-                            });
-                            s.setOnMouseClicked(ev -> {
-                                editRating[0] = starIndex;
-                                for (int j = 0; j < 5; j++) {
-                                    Label star = (Label) editStarBox.getChildren().get(j);
-                                    star.setTextFill(j < starIndex ? Color.GOLD : Color.LIGHTGRAY);
-                                }
-                            });
-                            editStarBox.getChildren().add(s);
-                        }
-
-                        Button saveBtn = new Button("💾 Зберегти");
-                        saveBtn.setStyle("-fx-background-color: #3e2723; -fx-text-fill: white;");
-                        saveBtn.setOnAction(ev -> {
-                            r.setText(editArea.getText().trim());
-                            r.setRating(editRating[0]);
-                            r.setCreatedAt(LocalDateTime.now());
-                            reviewDao.update(r);
-                            updateReviewsList[0].run();
-                            Platform.runLater(() -> contentScroll.setVvalue(scrollPos));
+                            reviewCard.getChildren().setAll(author, editStarBox, editArea, saveBtn);
                         });
-                        reviewCard.getChildren().setAll(author, editStarBox, editArea, saveBtn);
-                    });
+                        actions.getChildren().add(editBtn);
+                    }
 
-                    actions.getChildren().addAll(editBtn, delBtn);
+                    if (canDelete) {
+                        Button delBtn = new Button("🗑");
+                        delBtn.setStyle("-fx-background-color: transparent;");
+                        delBtn.setOnAction(e -> {
+                            if (MessageBox.showConfirm("Підтвердження", "Видалити цей відгук?")) {
+                                reviewDao.remove(r.getId());
+                                updateReviewsList[0].run();
+                                Platform.runLater(() -> contentScroll.setVvalue(scrollPos));
+                            }
+                        });
+                        actions.getChildren().add(delBtn);
+                    }
                 }
 
                 reviewCard.getChildren().addAll(author, rating, text, actions);
@@ -421,7 +488,7 @@ public class UserForm {
 
         updateReviewsList[0].run();
 
-    HBox starBox = new HBox(5);
+        HBox starBox = new HBox(5);
         starBox.setAlignment(Pos.CENTER);
         starBox.setPadding(new Insets(10));
         double[] currentRating = {0};
@@ -512,14 +579,15 @@ public class UserForm {
         StackPane root = new StackPane(contentScroll, closeBtn);
         root.setStyle("-fx-background-color: rgba(0,0,0,0.4);");
 
-        Scene scene = new Scene(root);
-        scene.setFill(Color.TRANSPARENT);
+        Scene popupScene = new Scene(root);
+        popupScene.setFill(Color.TRANSPARENT);
+        ThemeManager.applyTheme(popupScene);
 
         Stage popup = new Stage();
         popup.initOwner(primaryStage);
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.initStyle(StageStyle.TRANSPARENT);
-        popup.setScene(scene);
+        popup.setScene(popupScene);
         popup.setResizable(false);
 
         double popupWidth = primaryStage.getWidth() * 0.8;
@@ -533,7 +601,7 @@ public class UserForm {
         popup.setX(primaryStage.getX() + (primaryStage.getWidth() - popupWidth) / 2);
         popup.setY(primaryStage.getY() + (primaryStage.getHeight() - popupHeight) / 2);
 
-        closeBtn.setOnAction(e -> { 
+        closeBtn.setOnAction(e -> {
             popup.close();
             loadCards(allFlow, allPlaces);
             loadCards(favFlow, getFavoritePlaces());
@@ -556,22 +624,5 @@ public class UserForm {
         scale.play();
 
         popup.showAndWait();
-    }
-
-    private void playSandAnimation(Pane pane) {
-        Timeline tl = new Timeline(
-            new KeyFrame(Duration.millis(100), e -> {
-                Circle c = new Circle(2, Color.web("#000000", 0.2));
-                c.setCenterX(Math.random() * pane.getWidth());
-                c.setCenterY(pane.getHeight());
-                pane.getChildren().add(c);
-                TranslateTransition tt = new TranslateTransition(Duration.seconds(4), c);
-                tt.setByY(-pane.getHeight());
-                tt.setByX(Math.random() * 60 - 30);
-                tt.setOnFinished(ev -> pane.getChildren().remove(c));
-                tt.play();
-            }));
-        tl.setCycleCount(Animation.INDEFINITE);
-        tl.play();
     }
 }
