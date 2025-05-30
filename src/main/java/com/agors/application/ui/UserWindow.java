@@ -36,6 +36,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.*;
 import javafx.util.Duration;
 
@@ -65,6 +67,8 @@ public class UserWindow {
         HBox topBar = createTopBar();
 
         TabPane tabPane = new TabPane();
+        tabPane.getStyleClass().add("main-tabpane"); // 🎯 стилізація вкладок
+
         Tab allTab = new Tab(I18n.get("all_tab", "All")); allTab.setClosable(false);
         Tab favTab = new Tab(I18n.get("favorites_tab", "Favorites")); favTab.setClosable(false);
 
@@ -97,6 +101,9 @@ public class UserWindow {
         sand = new Pane(); sand.setMouseTransparent(true);
         stack = new StackPane(sand, root);
         scene = new Scene(stack, 800, 600);
+
+        // 🎨 Підключення стилів
+        scene.getStylesheets().add(getClass().getResource("/style/user-window.css").toExternalForm());
 
         ThemeManager.applyTheme(scene);
         updateTheme();
@@ -180,7 +187,7 @@ public class UserWindow {
         Button profile = new Button("👤");
         profile.setFont(Font.font(20));
         profile.setCursor(Cursor.HAND);
-        profile.setStyle("-fx-background-color: transparent; -fx-padding: 4;");
+        profile.getStyleClass().add("avatar-button");
 
         ContextMenu menu = new ContextMenu();
         MenuItem settings = new MenuItem(I18n.get("settings_user", "Settings"));
@@ -358,14 +365,27 @@ public class UserWindow {
         name.setFont(Font.font("Arial", 22));
         name.setTextFill(Color.web("#1a3e2b"));
 
-        Label country = new Label("🌍 " + place.getCountry());
-        Label era = new Label("🕰 " + place.getEra());
-        Label desc = new Label(place.getDescription());
-        desc.setWrapText(true);
-        for (Label lbl : List.of(country, era, desc)) {
-            lbl.setFont(Font.font("Arial", 14));
-            lbl.setTextFill(Color.web("#444"));
-        }
+        Label country = new Label("🌍 " + (place.getCountry() != null ? place.getCountry() : "—"));
+        Label era = new Label("🕰 " + (place.getEra() != null ? place.getEra() : "—"));
+
+        country.setFont(Font.font("Arial", 14));
+        country.setTextFill(Color.web("#444"));
+        country.setWrapText(true);
+        country.setMaxWidth(460);
+
+        era.setFont(Font.font("Arial", 14));
+        era.setTextFill(Color.web("#444"));
+        era.setWrapText(true);
+        era.setMaxWidth(460);
+
+        Text descText = new Text(place.getDescription());
+        descText.setFont(Font.font("Arial", 14));
+        descText.setFill(Color.web("#444"));
+        descText.setWrappingWidth(460);
+
+        TextFlow descFlow = new TextFlow(descText);
+        descFlow.setMaxWidth(460);
+        descFlow.setLineSpacing(4);
 
         Label avgRatingLabel = new Label();
         avgRatingLabel.setFont(Font.font("Arial", 14));
@@ -382,11 +402,15 @@ public class UserWindow {
         contentScroll.setFitToWidth(true);
         contentScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
-        User currentUser = SessionContext.getCurrentUser();
-        boolean isAdmin = currentUser != null && "ADMIN".equals(currentUser.getRole());
-
         Runnable[] updateReviewsList = new Runnable[1];
         updateReviewsList[0] = () -> {
+            UserDaoImpl userDaoForSession = new UserDaoImpl();
+            User currentUserNow = userDaoForSession.getUserById(SessionContext.getCurrentUser().getId());
+            SessionContext.setCurrentUser(currentUserNow);
+
+            int currentUserIdNow = currentUserNow != null ? currentUserNow.getId() : -1;
+            boolean isAdminNow = currentUserNow != null && "ADMIN".equals(currentUserNow.getRole());
+
             double scrollPos = contentScroll.getVvalue();
             reviewListBox.getChildren().clear();
             List<Review> updated = reviewDao.findByPlace(place.getId());
@@ -417,8 +441,8 @@ public class UserWindow {
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER_RIGHT);
 
-                boolean canEdit = r.getUserId() == currentUserId;
-                boolean canDelete = canEdit || isAdmin;
+                boolean canEdit = r.getUserId() == currentUserIdNow;
+                boolean canDelete = canEdit || isAdminNow;
 
                 if (canEdit || canDelete) {
                     if (canEdit) {
@@ -478,9 +502,12 @@ public class UserWindow {
                         Button delBtn = new Button(I18n.get("delete_btn", "🗑"));
                         delBtn.setStyle("-fx-background-color: transparent;");
                         delBtn.setOnAction(e -> {
+                            Stage owner = (Stage) delBtn.getScene().getWindow(); // 👈 отримуємо Stage через кнопку
+
                             if (MessageBox.showConfirm(
                                 I18n.get("confirm_title", "Confirmation"),
-                                I18n.get("confirm_delete_review", "Delete this review?")
+                                I18n.get("confirm_delete_review", "Delete this review?"),
+                                owner
                             )) {
                                 reviewDao.remove(r.getId());
                                 updateReviewsList[0].run();
@@ -496,6 +523,8 @@ public class UserWindow {
                 Platform.runLater(() -> contentScroll.setVvalue(scrollPos));
             }
         };
+
+        updateReviewsList[0].run();
 
         updateReviewsList[0].run();
 
@@ -527,6 +556,7 @@ public class UserWindow {
         commentArea.setWrapText(true);
         commentArea.setPrefRowCount(3);
         commentArea.setMaxWidth(400);
+        VBox.setMargin(commentArea, new Insets(0, 0, 10, 0));
 
         Button sendReview = new Button(I18n.get("send_review_btn", "Send Review"));
         sendReview.setFont(Font.font("Arial", 14));
@@ -535,7 +565,8 @@ public class UserWindow {
             if (currentRating[0] == 0 || commentArea.getText().trim().isEmpty()) {
                 MessageBox.show(
                     I18n.get("error_title", "Error"),
-                    I18n.get("error_review_fill", "Please rate and fill review text.")
+                    I18n.get("error_review_fill", "Please rate and fill review text."),
+                    ((Stage) ((Button) e.getSource()).getScene().getWindow())
                 );
                 return;
             }
@@ -584,11 +615,15 @@ public class UserWindow {
             }
         });
 
-        content.getChildren().addAll(img, name, country, era, avgRatingLabel, desc, favoriteBtn, reviewBlock);
+        content.getChildren().addAll(
+            img, name, country, era,
+            avgRatingLabel, descFlow, favoriteBtn, reviewBlock
+        );
+
         updateReviewsList[0].run();
 
         Button closeBtn = new Button("✖");
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #444; -fx-font-size: 16;");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e29264; -fx-font-size: 18;");
         StackPane.setAlignment(closeBtn, Pos.TOP_RIGHT);
         StackPane.setMargin(closeBtn, new Insets(10));
 

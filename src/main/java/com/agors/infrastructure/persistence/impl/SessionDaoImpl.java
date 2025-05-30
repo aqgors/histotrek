@@ -14,7 +14,7 @@ public class SessionDaoImpl {
 
     private static final String INSERT_SESSION = """
         INSERT INTO user_session (user_id, session_token, is_active)
-        VALUES (?, ?, true)
+        VALUES (?, ?, 1)
         """;
 
     public void createSession(int userId, String token) {
@@ -34,7 +34,7 @@ public class SessionDaoImpl {
     }
 
     public void deactivateByUserId(int userId) {
-        String sql = "UPDATE user_session SET is_active = false WHERE user_id = ?";
+        String sql = "UPDATE user_session SET is_active = 0 WHERE user_id = ?";
         try {
             Connection conn = ConnectionManager.getConnection();
             ConnectionHolder.setConnection(conn);
@@ -51,12 +51,11 @@ public class SessionDaoImpl {
 
     public Optional<User> findUserByActiveSession() {
         String sql = """
-            SELECT u.id, u.username, u.email, u.password, u.role
+            SELECT TOP 1 u.id, u.username, u.email, u.password, u.role
             FROM users u
             JOIN user_session s ON s.user_id = u.id
-            WHERE s.is_active = true
+            WHERE s.is_active = 1
             ORDER BY s.login_time DESC
-            LIMIT 1
         """;
 
         try {
@@ -99,5 +98,4 @@ public class SessionDaoImpl {
             ConnectionHolder.clearConnection();
         }
     }
-
 }

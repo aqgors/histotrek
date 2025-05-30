@@ -1,0 +1,50 @@
+.tab {
+  -fx-background-color: transparent;
+  -fx-background-insets: 0;
+  -fx-padding: 8 29;
+  -fx-font-size: 15px;
+  -fx-font-family: "Segoe UI", sans-serif;
+  -fx-text-fill: black;
+  -fx-border-radius: 40;
+  -fx-background-radius: 40;
+  -fx-border-color: transparent;
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+  -fx-alignment: center;
+  -fx-effect: null;
+}
+
+.tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #2d2f40, #171822);
+  -fx-text-fill: white;
+  -fx-font-weight: bold;
+  -fx-border-color: transparent;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 6, 0.4, 0, 2);
+}
+
+.tab-label {
+  -fx-alignment: center;
+  -fx-padding: 0;
+  -fx-background-color: transparent;
+  -fx-text-fill: inherit;
+}
+
+.back-button {
+  -fx-background-color: linear-gradient(to bottom, #2d2f40, #171822);
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  -fx-font-family: "Segoe UI", sans-serif;
+  -fx-padding: 8 20;
+  -fx-background-radius: 40;
+  -fx-border-radius: 40;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.4, 0, 2);
+  -fx-border-color: transparent;
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+  -fx-alignment: center;
+}
+
+.back-button:hover {
+  -fx-background-color: linear-gradient(to bottom, #353852, #1e1f2e);
+}

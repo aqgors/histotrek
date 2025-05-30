@@ -91,6 +91,7 @@ public class GuestWindow {
         });
 
         Button signupButton = createActionButton(I18n.get("sign_up_guest"));
+        signupButton.setPrefWidth(130);
         signupButton.setOnAction(e -> {
             Stage signupStage = new Stage();
             signupStage.setFullScreen(wasFull);
@@ -292,7 +293,8 @@ public class GuestWindow {
         card.setOnMouseClicked(e -> {
             MessageBox.show(
                 I18n.get("restricted_access_title"),
-                I18n.get("restricted_access_message")
+                I18n.get("restricted_access_message"),
+                (Stage) card.getScene().getWindow()
             );
         });
 

@@ -1,6 +1,7 @@
 package com.agors.application.admin;
 
 import com.agors.domain.entity.Report;
+import com.agors.domain.enums.ReportType;
 import com.agors.infrastructure.persistence.impl.PlaceDaoImpl;
 import com.agors.infrastructure.persistence.impl.ReportDaoImpl;
 import com.agors.infrastructure.persistence.impl.UserDaoImpl;
@@ -10,7 +11,6 @@ import javafx.geometry.Pos;
 import javafx.print.PrinterJob;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import org.apache.poi.xwpf.usermodel.*;
 
@@ -26,20 +26,21 @@ public class ReportManagementTab extends VBox {
     private final VBox reportList = new VBox(10);
 
     public ReportManagementTab() {
+        getStylesheets().add(getClass().getResource("/style/report-tab.css").toExternalForm());
+
         setPadding(new Insets(20));
         setSpacing(15);
 
-        Label title = new Label(I18n.get("reports_title", "Звіти"));
-        title.setFont(Font.font("Arial", 18));
-
         Button generateBtn = new Button(I18n.get("generate_report_btn", "📝 Згенерувати звіт"));
+        generateBtn.getStyleClass().addAll("button", "button-generate");
         generateBtn.setOnAction(e -> generateReport());
 
         reportList.setPadding(new Insets(10));
         ScrollPane scrollPane = new ScrollPane(reportList);
         scrollPane.setFitToWidth(true);
+        scrollPane.getStyleClass().add("scroll-pane");
 
-        getChildren().addAll(title, generateBtn, scrollPane);
+        getChildren().addAll(generateBtn, scrollPane);
         loadReports();
     }
 
@@ -69,7 +70,7 @@ public class ReportManagementTab extends VBox {
 
         Report report = new Report();
         report.setGeneratedAt(LocalDateTime.now());
-        report.setType("TEXT");
+        report.setType(ReportType.TEXT_EXPORT);
         report.setContent(content.toString());
 
         reportDao.add(report);
@@ -83,21 +84,27 @@ public class ReportManagementTab extends VBox {
         for (Report r : reports) {
             TitledPane pane = new TitledPane();
             pane.setText(I18n.get("report_title", "Звіт") + " #" + r.getId() + " (" + r.getGeneratedAt() + ")");
+            pane.getStyleClass().add("titled-pane");
 
             TextArea area = new TextArea(r.getContent());
             area.setWrapText(true);
             area.setEditable(false);
+            area.getStyleClass().add("text-area");
 
             Button saveTxtBtn = new Button(I18n.get("save_txt_btn", "💾 TXT"));
+            saveTxtBtn.getStyleClass().addAll("button", "button-save");
             saveTxtBtn.setOnAction(e -> saveAsTxt(r));
 
             Button saveDocxBtn = new Button(I18n.get("save_docx_btn", "📃 DOCX"));
+            saveDocxBtn.getStyleClass().addAll("button", "button-docx");
             saveDocxBtn.setOnAction(e -> saveAsDocx(r));
 
             Button printBtn = new Button(I18n.get("print_btn", "🖨 Друк"));
+            printBtn.getStyleClass().addAll("button", "button-print");
             printBtn.setOnAction(e -> printReport(r));
 
             Button deleteBtn = new Button(I18n.get("delete_btn_report", "🗑 Видалити"));
+            deleteBtn.getStyleClass().addAll("button", "button-delete");
             deleteBtn.setOnAction(e -> {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
                 confirm.setTitle(I18n.get("confirm_delete_title", "Підтвердження видалення"));
@@ -114,6 +121,7 @@ public class ReportManagementTab extends VBox {
             HBox actions = new HBox(10, saveTxtBtn, saveDocxBtn, printBtn, deleteBtn);
             actions.setPadding(new Insets(5));
             actions.setAlignment(Pos.CENTER_RIGHT);
+            actions.getStyleClass().add("hbox");
 
             VBox box = new VBox(area, actions);
             pane.setContent(box);
@@ -126,7 +134,7 @@ public class ReportManagementTab extends VBox {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.get("save_txt_title", "Зберегти звіт як TXT"));
         fileChooser.setInitialFileName("report_" + report.getId() + ".txt");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.get("txt_files", "Text Files"), "*.txt"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         File file = fileChooser.showSaveDialog(getScene().getWindow());
 
         if (file != null) {
@@ -142,7 +150,7 @@ public class ReportManagementTab extends VBox {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.get("save_docx_title", "Зберегти як DOCX"));
         fileChooser.setInitialFileName("report_" + report.getId() + ".docx");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.get("docx_files", "DOCX файли"), "*.docx"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DOCX файли", "*.docx"));
         File file = fileChooser.showSaveDialog(getScene().getWindow());
 
         if (file != null) {

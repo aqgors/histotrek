@@ -108,23 +108,8 @@ public class FavoriteDaoImpl implements FavoriteDao {
         return f;
     }
 
-    public void addToFavorites(int userId, int placeId) {
-        String sql = "INSERT INTO favorite (user_id, place_id, created_at) VALUES (?, ?, now()) ON CONFLICT DO NOTHING";
-
-        try (Connection conn = ConnectionManager.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, userId);
-            stmt.setInt(2, placeId);
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Помилка при додаванні до обраного", e);
-        }
-    }
-
     public boolean isFavorite(int userId, int placeId) {
-        String sql = "SELECT 1 FROM favorite WHERE user_id = ? AND place_id = ? LIMIT 1";
+        String sql = "SELECT TOP 1 1 FROM favorite WHERE user_id = ? AND place_id = ?";
         try (Connection conn = ConnectionManager.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
@@ -137,4 +122,27 @@ public class FavoriteDaoImpl implements FavoriteDao {
         }
     }
 
+    public void addToFavorites(int userId, int placeId) {
+        String sqlCheck = "SELECT 1 FROM favorite WHERE user_id = ? AND place_id = ?";
+        String sqlInsert = "INSERT INTO favorite (user_id, place_id, created_at) VALUES (?, ?, GETDATE())";
+
+        try (Connection conn = ConnectionManager.getConnection();
+            PreparedStatement stmtCheck = conn.prepareStatement(sqlCheck)) {
+
+            stmtCheck.setInt(1, userId);
+            stmtCheck.setInt(2, placeId);
+
+            try (ResultSet rs = stmtCheck.executeQuery()) {
+                if (!rs.next()) {
+                    try (PreparedStatement stmtInsert = conn.prepareStatement(sqlInsert)) {
+                        stmtInsert.setInt(1, userId);
+                        stmtInsert.setInt(2, placeId);
+                        stmtInsert.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Помилка при додаванні до обраного", e);
+        }
+    }
 }

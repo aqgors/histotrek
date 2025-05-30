@@ -113,7 +113,13 @@ public class SignupWindow {
             u.setPasswordHash(PasswordUtil.hashPassword(passField.getText()));
             u.setRole("USER");
             new UserDaoImpl().addUser(u);
-            MessageBox.show(I18n.get("sign_up_success"), I18n.get("registration_success"));
+
+            MessageBox.show(
+                I18n.get("sign_up_success"),
+                I18n.get("registration_success"),
+                ((Stage) userField.getScene().getWindow())
+            );
+
             userField.clear();
             emailField.clear();
             passField.clear();
@@ -173,9 +179,9 @@ public class SignupWindow {
         String hover = baseStyle.contains("transparent")
             ? "-fx-background-color:#f5e4c4;"
             : "-fx-background-color:#a99e75;";
-        b.setStyle(baseStyle + " -fx-text-fill:black; -fx-background-radius:12;");
-        b.setOnMouseEntered(e -> b.setStyle(hover + " -fx-text-fill:white; -fx-background-radius:12;"));
-        b.setOnMouseExited(e  -> b.setStyle(baseStyle + " -fx-text-fill:black; -fx-background-radius:12;"));
+        b.setStyle(baseStyle + " -fx-text-fill:#ffffff; -fx-background-radius:12;");
+        b.setOnMouseEntered(e -> b.setStyle(hover + " -fx-text-fill:#0c0c0d; -fx-background-radius:12;"));
+        b.setOnMouseExited(e  -> b.setStyle(baseStyle + " -fx-text-fill:#ffffff; -fx-background-radius:12;"));
         b.setEffect(new DropShadow(5, Color.rgb(0,0,0,0.1)));
         b.setOnAction(handler);
         return b;

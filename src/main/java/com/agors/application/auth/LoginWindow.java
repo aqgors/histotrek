@@ -98,7 +98,13 @@ public class LoginWindow {
             SessionContext.setCurrentUser(u);
             String token = UUID.randomUUID().toString();
             new SessionDaoImpl().createSession(u.getId(), token);
-            MessageBox.show(I18n.get("success_settings"), I18n.get("welcome") + ", " + u.getUsername() + "!");
+
+            MessageBox.show(
+                I18n.get("success_settings"),
+                I18n.get("welcome") + ", " + u.getUsername() + "!",
+                stage
+            );
+
             stage.close();
             new UserWindow().start(owner, u.getId(), stage.isFullScreen());
         }
@@ -164,9 +170,9 @@ public class LoginWindow {
         String hover = baseStyle.contains("transparent")
             ? "-fx-background-color:#f5e4c4;"
             : "-fx-background-color:#a99e75;";
-        b.setStyle(baseStyle + " -fx-text-fill:black; -fx-background-radius:12;");
-        b.setOnMouseEntered(e -> b.setStyle(hover + " -fx-text-fill:white; -fx-background-radius:12;"));
-        b.setOnMouseExited(e  -> b.setStyle(baseStyle + " -fx-text-fill:black; -fx-background-radius:12;"));
+        b.setStyle(baseStyle + " -fx-text-fill:#ffffff; -fx-background-radius:12;");
+        b.setOnMouseEntered(e -> b.setStyle(hover + " -fx-text-fill:#0c0c0d; -fx-background-radius:12;"));
+        b.setOnMouseExited(e  -> b.setStyle(baseStyle + " -fx-text-fill:#ffffff; -fx-background-radius:12;"));
         b.setEffect(new DropShadow(5, Color.rgb(0,0,0,0.1)));
         b.setOnAction(handler);
         return b;

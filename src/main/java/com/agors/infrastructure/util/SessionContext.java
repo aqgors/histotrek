@@ -31,6 +31,17 @@ public class SessionContext {
     }
 
     /**
+     * Оновлює роль поточного користувача в сесії.
+     *
+     * @param role нова роль
+     */
+    public static void updateCurrentUserRole(String role) {
+        if (currentUser != null) {
+            currentUser.setRole(role);
+        }
+    }
+
+    /**
      * Скидає сесію (вихід).
      */
     public static void clear() {

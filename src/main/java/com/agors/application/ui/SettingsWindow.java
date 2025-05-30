@@ -94,17 +94,24 @@ public class SettingsWindow {
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.getStyleClass().add("settings-scrollpane");
 
         BorderPane root = new BorderPane(scrollPane);
         root.setTop(topBar);
 
         Scene scene = new Scene(root, 800, 600);
 
+        scene.getStylesheets().add(getClass().getResource("/style/settings.css").toExternalForm());
+
+        ThemeManager.applyTheme(scene);
+
         scene.setOnKeyPressed(evt -> {
             if (evt.getCode() == KeyCode.F11) {
                 settingsStage.setFullScreen(!settingsStage.isFullScreen());
             }
         });
+
+        ThemeManager.addThemeChangeListener(theme -> ThemeManager.applyTheme(scene));
 
         settingsStage.setScene(scene);
         settingsStage.setTitle(I18n.get("settings", "Settings"));
@@ -142,7 +149,8 @@ public class SettingsWindow {
 
             MessageBox.show(
                 I18n.get("access_granted_title", "Access Granted"),
-                I18n.get("access_granted_msg", "You have been granted admin rights")
+                I18n.get("access_granted_msg", "You have been granted admin rights"),
+                owner
             );
             owner.close();
             Stage adminStage = new Stage();
@@ -150,9 +158,11 @@ public class SettingsWindow {
         } else {
             MessageBox.show(
                 I18n.get("error_title_settings", "Error"),
-                I18n.get("admin_access_failed", "Incorrect admin password")
+                I18n.get("admin_access_failed", "Incorrect admin password"),
+                owner
             );
         }
+
     }
 
     private Label createStaticText(String text) {
@@ -173,14 +183,18 @@ public class SettingsWindow {
             try {
                 java.awt.Desktop.getDesktop().browse(new java.net.URI(uri));
             } catch (Exception ex) {
-                MessageBox.show(I18n.get("error_title_settings", "Error"), I18n.get("email_client_error", "Failed to open mail client."));
+                MessageBox.show(
+                    I18n.get("error_title_settings", "Error"),
+                    I18n.get("email_client_error", "Failed to open mail client."),
+                    currentSettingsStage
+                );
             }
         });
         return link;
     }
 
     private Button createThemeChanger() {
-        Button btn = new Button(I18n.get("theme_button", "🎨 Apply different theme to menu"));
+        Button btn = new Button(I18n.get("theme_button", "🎨 Apply another theme"));
         btn.setFont(Font.font("Arial", 14));
         btn.setStyle("-fx-background-color: #c2b280; -fx-text-fill: black; -fx-background-radius: 8;");
         btn.setCursor(Cursor.HAND);
@@ -200,7 +214,7 @@ public class SettingsWindow {
 
             ChoiceDialog<String> dialog = new ChoiceDialog<>(currentLocalized, map.keySet().toArray(new String[0]));
             dialog.setTitle(I18n.get("theme_title", "Theme"));
-            dialog.setHeaderText(I18n.get("theme_header", "Select a theme for the user menu"));
+            dialog.setHeaderText(I18n.get("theme_header", "Select a theme"));
             dialog.setContentText(I18n.get("theme_content", "Theme:"));
 
             dialog.showAndWait().ifPresent(choice -> {
@@ -240,7 +254,7 @@ public class SettingsWindow {
         h.setFill(Color.BLACK);
         VBox box = new VBox(10, h);
         box.setPadding(new Insets(10));
-        box.setStyle("-fx-background-color: white; -fx-border-color: #d3d3d3; -fx-border-radius: 8; -fx-background-radius: 8;");
+        box.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-radius: 8; -fx-background-radius: 8;");
         box.getChildren().addAll(controls);
         return box;
     }
@@ -258,19 +272,15 @@ public class SettingsWindow {
         return btn;
     }
 
-    private Button createStyledButton(String text) {
-        return createStyledButton(text, null);
-    }
-
     private Button createBackButton() {
         StackPane circle = new StackPane();
         circle.setPrefSize(36, 36);
-        circle.setStyle("-fx-background-color: white; -fx-border-radius: 18;");
-        circle.setEffect(new DropShadow(4, Color.rgb(0, 0, 0, 0.2)));
+        circle.getStyleClass().add("back-button-circle");
 
         Text arrow = new Text("\u2190");
         arrow.setFont(Font.font("Arial", 14));
-        arrow.setFill(Color.web("#3e2723"));
+        arrow.getStyleClass().add("back-button-arrow");
+
         circle.getChildren().add(arrow);
 
         Button btn = new Button();
@@ -296,13 +306,21 @@ public class SettingsWindow {
 
         String err = validator.validateUsername(newName, currentUser.getUsername());
         if (err != null) {
-            MessageBox.show(I18n.get("error_title_settings", "Error"), err);
+            MessageBox.show(
+                I18n.get("error_title_settings", "Error"),
+                err,
+                owner
+            );
             return;
         }
 
         currentUser.setUsername(newName);
         userDao.updateUser(currentUser);
-        MessageBox.show(I18n.get("success_settings", "Success"), I18n.get("username_updated", "Username updated successfully"));
+        MessageBox.show(
+            I18n.get("success_settings", "Success"),
+            I18n.get("username_updated", "Username updated successfully"),
+            owner
+        );
     }
 
     private void handleChangeEmail(Stage owner) {
@@ -311,13 +329,21 @@ public class SettingsWindow {
 
         String err = validator.validateEmail(newEmail, currentUser.getEmail());
         if (err != null) {
-            MessageBox.show(I18n.get("error_title_settings", "Error"), err);
+            MessageBox.show(
+                I18n.get("error_title_settings", "Error"),
+                err,
+                owner
+            );
             return;
         }
 
         currentUser.setEmail(newEmail);
         userDao.updateUser(currentUser);
-        MessageBox.show(I18n.get("success_settings", "Success"), I18n.get("email_updated", "Email updated successfully"));
+        MessageBox.show(
+            I18n.get("success_settings", "Success"),
+            I18n.get("email_updated", "Email updated successfully"),
+            owner
+        );
     }
 
     private void handleChangePassword(Stage owner) {
@@ -326,21 +352,37 @@ public class SettingsWindow {
 
         String err = validator.validatePassword(newPass);
         if (err != null) {
-            MessageBox.show(I18n.get("error_title_settings", "Error"), err);
+            MessageBox.show(
+                I18n.get("error_title_settings", "Error"),
+                err,
+                owner
+            );
             return;
         }
 
         currentUser.setPasswordHash(PasswordUtil.hashPassword(newPass));
         userDao.updateUser(currentUser);
-        MessageBox.show(I18n.get("success_settings", "Success"), I18n.get("password_updated", "Password updated successfully"));
+        MessageBox.show(
+            I18n.get("success_settings", "Success"),
+            I18n.get("password_updated", "Password updated successfully"),
+            owner
+        );
     }
 
     private void handleDeleteAccount(Stage owner) {
-        boolean confirmed = MessageBox.showConfirm(I18n.get("confirm_title_settings", "Confirmation"), I18n.get("confirm_delete_account", "Are you sure you want to delete your account?"));
+        boolean confirmed = MessageBox.showConfirm(
+            I18n.get("confirm_title_settings", "Confirmation"),
+            I18n.get("confirm_delete_account", "Are you sure you want to delete your account?"),
+            owner
+        );
         if (!confirmed) return;
 
         userDao.deleteUser(currentUser.getId());
-        MessageBox.show(I18n.get("success_settings", "Success"), I18n.get("account_deleted", "Your account has been deleted"));
+        MessageBox.show(
+            I18n.get("success_settings", "Success"),
+            I18n.get("account_deleted", "Your account has been deleted"),
+            owner
+        );
         owner.close();
         new MenuScreen().show(new Stage());
     }
@@ -356,7 +398,11 @@ public class SettingsWindow {
 
         String inputHash = PasswordUtil.hashPassword(res.get());
         if (!inputHash.equals(currentUser.getPasswordHash())) {
-            MessageBox.show(I18n.get("error_title_settings", "Error"), I18n.get("error_wrong_password", "Incorrect password"));
+            MessageBox.show(
+                I18n.get("error_title_settings", "Error"),
+                I18n.get("error_wrong_password", "Incorrect password"),
+                owner
+            );
             return false;
         }
         return true;

@@ -9,7 +9,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
 
 import java.util.stream.Collectors;
 
@@ -20,6 +19,8 @@ public class UserManagementTab extends VBox {
     private final VBox userListContainer = new VBox(10);
 
     public UserManagementTab() {
+        getStylesheets().add(getClass().getResource("/style/user-tab.css").toExternalForm());
+
         setPadding(new Insets(20));
         setSpacing(15);
         setAlignment(Pos.TOP_CENTER);
@@ -27,20 +28,18 @@ public class UserManagementTab extends VBox {
         TextField searchField = new TextField();
         searchField.setPromptText(I18n.get("user_search_prompt", "Пошук користувача..."));
         searchField.setMaxWidth(300);
+        searchField.getStyleClass().add("text-field");
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> updateUserList(newVal));
-
-        Label title = new Label(I18n.get("user_management_title", "Керування користувачами"));
-        title.setFont(Font.font("Arial", 18));
 
         userListContainer.setAlignment(Pos.TOP_CENTER);
 
         ScrollPane scrollPane = new ScrollPane(userListContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background: transparent;");
+        scrollPane.getStyleClass().add("scroll-pane");
 
-        getChildren().addAll(title, searchField, scrollPane);
+        getChildren().addAll(searchField, scrollPane);
         updateUserList("");
     }
 
@@ -59,21 +58,20 @@ public class UserManagementTab extends VBox {
     private HBox createUserCard(User user) {
         HBox card = new HBox(20);
         card.setPadding(new Insets(10));
-        card.setStyle("-fx-background-color: #f0f0f0; -fx-background-radius: 8;");
         card.setAlignment(Pos.CENTER_LEFT);
+        card.getStyleClass().add("user-card");
 
         VBox infoBox = new VBox(5);
         Label name = new Label("👤 " + user.getUsername());
         Label email = new Label("📧 " + user.getEmail());
-        name.setFont(Font.font("Arial", 14));
-        email.setFont(Font.font("Arial", 14));
-        name.setStyle("-fx-text-fill: black;");
-        email.setStyle("-fx-text-fill: black;");
+        name.getStyleClass().add("label");
+        email.getStyleClass().add("label");
         infoBox.getChildren().addAll(name, email);
 
         ComboBox<String> roleBox = new ComboBox<>();
         roleBox.getItems().addAll("USER", "ADMIN");
         roleBox.setValue(user.getRole().toUpperCase());
+        roleBox.getStyleClass().add("combo-box");
 
         roleBox.setOnAction(e -> {
             String selected = roleBox.getValue();
@@ -82,7 +80,7 @@ public class UserManagementTab extends VBox {
         });
 
         Button deleteBtn = new Button("🗑 " + I18n.get("delete_user_btn", "Видалити"));
-        deleteBtn.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
+        deleteBtn.getStyleClass().add("button-delete");
         deleteBtn.setDisable(user.getId() == com.agors.infrastructure.util.SessionContext.getCurrentUser().getId());
 
         deleteBtn.setOnAction(e -> {

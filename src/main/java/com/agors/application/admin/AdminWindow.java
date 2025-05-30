@@ -2,6 +2,7 @@ package com.agors.application.admin;
 
 import com.agors.application.ui.SettingsWindow;
 import com.agors.infrastructure.util.I18n;
+import com.agors.infrastructure.util.ThemeManager;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -33,8 +34,9 @@ public class AdminWindow {
 
         tabPane.getTabs().addAll(usersTab, contentTab, reportsTab);
 
-        Button backBtn = new Button(I18n.get("back_button", "↩ Back"));
-        backBtn.setFont(Font.font("Arial", 14));
+        // Кнопка назад
+        Button backBtn = new Button(I18n.get("back_button", "↩ Назад"));
+        backBtn.getStyleClass().add("back-button");
         backBtn.setOnAction(e -> {
             adminStage.close();
             previousStage.close();
@@ -50,6 +52,12 @@ public class AdminWindow {
         root.setCenter(tabPane);
 
         Scene scene = new Scene(root, 900, 600);
+
+        ThemeManager.applyTheme(scene);
+        ThemeManager.addThemeChangeListener(theme -> ThemeManager.applyTheme(scene));
+
+        scene.getStylesheets().add(getClass().getResource("/style/admin-tabs.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/style/content-tab.css").toExternalForm());
 
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F11) {

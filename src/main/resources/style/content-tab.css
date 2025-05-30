@@ -1,0 +1,55 @@
+.search-field {
+  -fx-background-color: #f0f0f0;
+  -fx-background-radius: 30;
+  -fx-border-radius: 30;
+  -fx-padding: 8 16;
+  -fx-font-size: 14px;
+  -fx-border-color: transparent;
+  -fx-prompt-text-fill: #999;
+  -fx-text-fill: #333;
+}
+
+.add-place-button {
+  -fx-background-color: linear-gradient(to bottom, #2d2f40, #171822);
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  -fx-background-radius: 40;
+  -fx-border-radius: 40;
+  -fx-padding: 8 18;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.3, 0, 2);
+}
+
+.add-place-button:hover {
+  -fx-background-color: linear-gradient(to bottom, #353852, #1e1f2e);
+}
+
+.place-card {
+  -fx-background-color: rgba(255, 255, 255, 0);
+  -fx-background-radius: 20;
+  -fx-padding: 14;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0), 6, 0.3, 0, 2);
+}
+
+.place-name {
+  -fx-font-size: 16px;
+  -fx-text-fill: #222;
+  -fx-font-weight: bold;
+}
+
+.place-era {
+  -fx-font-size: 13px;
+  -fx-text-fill: #666;
+}
+
+.action-button {
+  -fx-background-color: transparent;
+  -fx-background-radius: 50%;
+  -fx-padding: 6;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0.2, 0, 1);
+}
+
+.action-button:hover {
+  -fx-background-color: rgba(0, 0, 0, 0.05);
+}

@@ -1,0 +1,54 @@
+.text-field {
+  -fx-background-radius: 20;
+  -fx-border-radius: 20;
+  -fx-background-color: rgba(255, 255, 255, 0.8);
+  -fx-border-color: transparent;
+  -fx-prompt-text-fill: #999999;
+  -fx-padding: 8 16;
+  -fx-font-size: 14px;
+}
+
+.scroll-pane {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+}
+
+.scroll-pane .viewport {
+  -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical {
+  -fx-background-color: transparent;
+  -fx-padding: 4;
+}
+
+.scroll-pane .thumb {
+  -fx-background-color: #ccc;
+  -fx-background-radius: 5;
+}
+
+.user-card {
+  -fx-background-color: rgba(240, 240, 240, 0.9);
+  -fx-background-radius: 12;
+  -fx-padding: 14 20;
+  -fx-spacing: 20;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0.2, 0, 2);
+}
+
+.button-delete {
+  -fx-background-color: #e57373;
+  -fx-text-fill: white;
+  -fx-background-radius: 8;
+  -fx-font-weight: bold;
+}
+
+.combo-box {
+  -fx-background-radius: 8;
+  -fx-padding: 4 8;
+  -fx-pref-width: 100px;
+}
+
+.label {
+  -fx-font-size: 14px;
+  -fx-text-fill: #222;
+}

@@ -1,0 +1,41 @@
+.settings-scrollpane {
+  -fx-background-color: transparent;
+  -fx-background: transparent;
+}
+
+.settings-scrollpane > .viewport {
+  -fx-background-color: transparent;
+}
+
+.settings-scrollpane .scroll-bar {
+  -fx-background-color: transparent;
+}
+
+.settings-scrollpane .scroll-bar .track {
+  -fx-background-color: transparent;
+}
+
+.settings-scrollpane .scroll-bar .thumb {
+  -fx-background-color: rgba(242, 164, 108, 0.6); /* оранжева, прозора */
+  -fx-background-insets: 2;
+  -fx-background-radius: 8;
+}
+
+.back-button-circle {
+  -fx-background-color: #a47556;
+  -fx-background-radius: 50%;
+  -fx-border-radius: 50%;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 1);
+}
+
+.back-button-arrow {
+  -fx-stroke: #3c3f41;
+  -fx-stroke-width: 2.5;
+  -fx-fill: transparent;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0.1, 0, 1);
+}
+
+.back-button-circle:hover .back-button-arrow {
+  -fx-stroke: #ffffff;
+  -fx-stroke-width: 3;
+}

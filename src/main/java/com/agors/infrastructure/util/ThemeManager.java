@@ -35,20 +35,10 @@ public class ThemeManager {
         }
     }
 
-    public static void applyTheme(Scene scene, ThemeType themeOverride) {
-        if (scene != null && scene.getRoot() != null) {
-            applyTheme(scene.getRoot(), themeOverride);
-        }
-    }
-
-    public static void applyTheme(Parent root) {
-        applyTheme(root, currentTheme);
-    }
-
     public static void applyTheme(Parent root, ThemeType themeToApply) {
         if (root != null) {
             String style = switch (themeToApply) {
-                case DARK -> "-fx-background-color: #2b2b2b;";
+                case DARK -> "-fx-background-color: #3c3f41;";
                 case LIGHT -> "-fx-background-color: white;";
                 case DEFAULT -> "-fx-background-color: linear-gradient(to bottom right, #fdf6e3, #e29264);";
             };
