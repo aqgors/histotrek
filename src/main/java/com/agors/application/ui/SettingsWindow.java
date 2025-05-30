@@ -187,19 +187,27 @@ public class SettingsWindow {
         btn.setEffect(new DropShadow(4, Color.rgb(0, 0, 0, 0.2)));
 
         btn.setOnAction(e -> {
-            ChoiceDialog<String> dialog = new ChoiceDialog<>(
-                I18n.get("theme_default", "Default"),
-                I18n.get("theme_default", "Default"),
-                I18n.get("theme_light", "Light"),
-                I18n.get("theme_dark", "Dark")
-            );
+            var map = new java.util.LinkedHashMap<String, ThemeType>();
+            map.put(I18n.get("theme_default", "Default"), ThemeType.DEFAULT);
+            map.put(I18n.get("theme_light", "Light"), ThemeType.LIGHT);
+            map.put(I18n.get("theme_dark", "Dark"), ThemeType.DARK);
+
+            String currentLocalized = map.entrySet().stream()
+                .filter(entry -> entry.getValue() == ThemeManager.getCurrentTheme())
+                .map(java.util.Map.Entry::getKey)
+                .findFirst()
+                .orElse(I18n.get("theme_default", "Default"));
+
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(currentLocalized, map.keySet().toArray(new String[0]));
             dialog.setTitle(I18n.get("theme_title", "Theme"));
             dialog.setHeaderText(I18n.get("theme_header", "Select a theme for the user menu"));
             dialog.setContentText(I18n.get("theme_content", "Theme:"));
 
             dialog.showAndWait().ifPresent(choice -> {
-                ThemeType selected = ThemeType.valueOf(choice.toUpperCase());
-                ThemeManager.setTheme(selected);
+                ThemeType selected = map.get(choice);
+                if (selected != null) {
+                    ThemeManager.setTheme(selected);
+                }
             });
         });
 

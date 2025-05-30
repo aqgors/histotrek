@@ -74,10 +74,15 @@ public class ThemeManager {
         try (InputStream in = new FileInputStream(FILE)) {
             Properties props = new Properties();
             props.load(in);
-            return ThemeType.valueOf(props.getProperty("theme", "DEFAULT"));
-        } catch (Exception e) {
-            return ThemeType.DEFAULT;
+            String themeStr = props.getProperty("theme", "DEFAULT").trim().toUpperCase();
+            for (ThemeType type : ThemeType.values()) {
+                if (type.name().equalsIgnoreCase(themeStr)) {
+                    return type;
+                }
+            }
+        } catch (Exception ignored) {
         }
+        return ThemeType.DEFAULT;
     }
 
     private static void saveTheme(ThemeType theme) {

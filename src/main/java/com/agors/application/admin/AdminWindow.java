@@ -5,6 +5,7 @@ import com.agors.infrastructure.util.I18n;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
@@ -49,6 +50,14 @@ public class AdminWindow {
         root.setCenter(tabPane);
 
         Scene scene = new Scene(root, 900, 600);
+
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.F11) {
+                adminStage.setFullScreen(!adminStage.isFullScreen());
+            }
+        });
+
+        adminStage.setFullScreenExitHint("");
         adminStage.setTitle(I18n.get("admin_panel_title", "Admin Panel"));
         adminStage.setScene(scene);
         adminStage.show();
