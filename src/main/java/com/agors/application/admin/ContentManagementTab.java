@@ -18,12 +18,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Вкладка для адміністрування історичних місць у довіднику.
+ * <p>
+ * Забезпечує можливість перегляду, пошуку, додавання, редагування та видалення об'єктів типу {@link Place}.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
     public class ContentManagementTab extends VBox {
 
+    /** Список об'єктів історичних місць, що відображаються. */
         private final ObservableList<Place> places = FXCollections.observableArrayList();
+    /** DAO для роботи з історичними місцями. */
         private final PlaceDaoImpl placeDao = new PlaceDaoImpl();
+    /** Контейнер для візуального списку карток місць. */
         private final VBox listContainer = new VBox(10);
 
+    /**
+     * Конструктор, який ініціалізує вкладку: пошук, кнопки керування, список місць.
+     */
         public ContentManagementTab() {
             setPadding(new Insets(20));
             setSpacing(15);
@@ -55,6 +70,11 @@ import java.util.stream.Collectors;
             updateList("");
         }
 
+    /**
+     * Оновлює список місць відповідно до фільтра (рядка пошуку).
+     *
+     * @param filter текстовий фільтр (наприклад, частина назви)
+     */
         private void updateList(String filter) {
             List<Place> all = placeDao.findAll();
             places.setAll(all.stream()
@@ -67,6 +87,12 @@ import java.util.stream.Collectors;
             }
         }
 
+    /**
+     * Створює графічну картку для одного історичного місця з кнопками редагування та видалення.
+     *
+     * @param place об'єкт {@link Place}, який потрібно відобразити
+     * @return графічний елемент HBox-картки
+     */
         private HBox createPlaceCard(Place place) {
             HBox card = new HBox(20);
             card.setAlignment(Pos.CENTER_LEFT);
@@ -109,6 +135,11 @@ import java.util.stream.Collectors;
             return card;
         }
 
+    /**
+     * Створює стандартну мітку для відображення помилки валідації.
+     *
+     * @return налаштований об'єкт {@link Label}
+     */
         private Label errorLabel() {
             Label label = new Label();
             label.setTextFill(Color.RED);
@@ -117,14 +148,28 @@ import java.util.stream.Collectors;
             return label;
         }
 
+    /**
+     * Відкриває діалог додавання нового історичного місця.
+     */
         private void openAddDialog() {
             openPlaceDialog(null);
         }
 
+    /**
+     * Відкриває діалог редагування існуючого історичного місця.
+     *
+     * @param placeToEdit місце для редагування
+     */
         private void openEditDialog(Place placeToEdit) {
             openPlaceDialog(placeToEdit);
         }
 
+    /**
+     * Відкриває діалогове вікно для створення або редагування місця.
+     * Виконує валідацію введених даних за допомогою {@link PlaceValidator}.
+     *
+     * @param placeToEdit якщо null — створюється нове місце, інакше — редагується існуюче
+     */
         private void openPlaceDialog(Place placeToEdit) {
             boolean isEdit = placeToEdit != null;
 

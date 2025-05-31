@@ -23,8 +23,26 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Вікно реєстрації нового користувача у застосунку Histotrek.
+ * <p>
+ * Дозволяє користувачу ввести ім’я користувача, email та пароль, проходить
+ * валідацію введених даних, зберігає користувача в базу та відображає повідомлення про успішну реєстрацію.
+ * Має анімований пісочний фон та адаптивний інтерфейс.
+ * </p>
+ * Підтримується повернення до попереднього вікна та повноекранний режим (F11).
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class SignupWindow {
 
+    /**
+     * Відображає вікно реєстрації з анімованим фоном, формою введення та кнопками.
+     *
+     * @param stage нове вікно реєстрації
+     * @param owner вікно, з якого було викликано реєстрацію
+     */
     public void show(Stage stage, Stage owner) {
         stage.initOwner(owner);
         stage.setFullScreen(owner.isFullScreen());
@@ -90,6 +108,17 @@ public class SignupWindow {
         formBox.requestFocus();
     }
 
+    /**
+     * Обробляє подію натискання кнопки "Створити акаунт".
+     * Виконує валідацію, створює нового користувача та додає його до бази даних.
+     *
+     * @param userField  поле введення імені користувача
+     * @param emailField поле введення email
+     * @param passField  поле введення пароля
+     * @param userErr    мітка для помилки імені
+     * @param emailErr   мітка для помилки email
+     * @param passErr    мітка для помилки пароля
+     */
     private void handleSubmit(
         TextField userField,
         TextField emailField,
@@ -126,12 +155,24 @@ public class SignupWindow {
         }
     }
 
+    /**
+     * Повертає користувача до попереднього вікна (наприклад, екрану входу).
+     *
+     * @param stage поточне вікно реєстрації
+     * @param owner вікно, яке викликало реєстрацію
+     */
     private void handleBack(Stage stage, Stage owner) {
         owner.setFullScreen(stage.isFullScreen());
         stage.close();
         owner.show();
     }
 
+    /**
+     * Створює стилізоване текстове поле з підказкою.
+     *
+     * @param prompt текст-підказка
+     * @return новий об'єкт {@link TextField}
+     */
     private TextField styledField(String prompt) {
         TextField f = new TextField();
         f.setPromptText(prompt);
@@ -139,6 +180,12 @@ public class SignupWindow {
         return f;
     }
 
+    /**
+     * Створює стилізоване поле введення пароля.
+     *
+     * @param prompt текст-підказка
+     * @return новий об'єкт {@link PasswordField}
+     */
     private PasswordField styledPasswordField(String prompt) {
         PasswordField f = new PasswordField();
         f.setPromptText(prompt);
@@ -146,6 +193,11 @@ public class SignupWindow {
         return f;
     }
 
+    /**
+     * Накладає стиль на текстове поле (загальний для звичайного і пароля).
+     *
+     * @param f поле, до якого застосовується стиль
+     */
     private void applyFieldStyle(TextField f) {
         f.setMaxWidth(320);
         f.setPrefHeight(45);
@@ -159,6 +211,11 @@ public class SignupWindow {
         );
     }
 
+    /**
+     * Створює мітку для відображення повідомлень про помилки.
+     *
+     * @return нова мітка {@link Label} з червоним текстом
+     */
     private Label errorLabel() {
         Label l = new Label();
         l.setFont(Font.font("Arial", 12));
@@ -168,6 +225,14 @@ public class SignupWindow {
         return l;
     }
 
+    /**
+     * Створює стилізовану кнопку з ефектами наведеного стану.
+     *
+     * @param text     текст кнопки
+     * @param baseStyle CSS-стиль кнопки
+     * @param handler  обробник події натискання
+     * @return об'єкт {@link Button}
+     */
     private Button styledButton(
         String text,
         String baseStyle,
@@ -187,6 +252,11 @@ public class SignupWindow {
         return b;
     }
 
+    /**
+     * Анімує пісочний фон за допомогою частинок, що падають вверх.
+     *
+     * @param p шар для відображення анімації
+     */
     private void animateSand(Pane p) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = p.getWidth(), h = p.getHeight();
@@ -204,6 +274,12 @@ public class SignupWindow {
         tl.play();
     }
 
+    /**
+     * Прив’язує розміри шару піску до розміру сцени.
+     *
+     * @param p панель з піском
+     * @param s сцена, до якої прив’язуються розміри
+     */
     private void bindSize(Pane p, Scene s) {
         p.prefWidthProperty().bind(s.widthProperty());
         p.prefHeightProperty().bind(s.heightProperty());

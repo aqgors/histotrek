@@ -173,6 +173,13 @@ public class UserDaoImpl implements UserDao {
         return user;
     }
 
+    /**
+     * Перевіряє, чи існує користувач з вказаним іменем користувача в таблиці users.
+     *
+     * @param username ім’я користувача для перевірки
+     * @return {@code true}, якщо користувач з таким іменем існує; {@code false} — інакше
+     * @throws RuntimeException у разі помилки доступу до бази даних
+     */
     public boolean existsByUsername(String username) {
         String sql = "SELECT 1 FROM users WHERE username = ?";
         try (Connection conn = ConnectionManager.getConnection();
@@ -186,6 +193,13 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    /**
+     * Перевіряє, чи існує користувач з вказаною електронною поштою в таблиці users.
+     *
+     * @param email електронна пошта для перевірки
+     * @return {@code true}, якщо користувач з такою поштою існує; {@code false} — інакше
+     * @throws RuntimeException у разі помилки доступу до бази даних
+     */
     public boolean existsByEmail(String email) {
         String sql = "SELECT 1 FROM users WHERE email = ?";
         try (Connection conn = ConnectionManager.getConnection();

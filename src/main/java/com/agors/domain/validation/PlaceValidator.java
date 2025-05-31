@@ -6,8 +6,25 @@ import com.agors.infrastructure.util.I18n;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Валідатор для об'єкта {@link Place}, який перевіряє коректність введених даних.
+ * <p>
+ * Перевіряє обов'язкові поля: назву, країну, епоху, опис і URL зображення.
+ * Також виконує базову перевірку формату URL.
+ * Підтримує локалізовані повідомлення про помилки через {@link I18n}.
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class PlaceValidator {
 
+    /**
+     * Перевіряє переданий об'єкт {@link Place} на валідність.
+     *
+     * @param place об'єкт для перевірки
+     * @return мапа помилок, де ключ — імʼя поля, значення — повідомлення про помилку
+     */
     public Map<String, String> validate(Place place) {
         Map<String, String> errors = new HashMap<>();
 
@@ -32,6 +49,12 @@ public class PlaceValidator {
         return errors;
     }
 
+    /**
+     * Перевіряє, чи рядок є порожнім або містить лише пробіли.
+     *
+     * @param value вхідне значення
+     * @return true, якщо рядок порожній або null
+     */
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }

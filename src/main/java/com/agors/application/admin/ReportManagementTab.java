@@ -20,11 +20,29 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Вкладка керування звітами адміністратора.
+ * <p>
+ * Надає можливості для генерації звітів, перегляду створених звітів,
+ * їх збереження у форматах TXT та DOCX, друку та видалення.
+ * </p>
+ * Генерація звіту включає інформацію про користувачів і історичні місця.
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class ReportManagementTab extends VBox {
 
+    /** DAO для роботи з таблицею звітів. */
     private final ReportDaoImpl reportDao = new ReportDaoImpl();
+    /** Контейнер для списку звітів. */
     private final VBox reportList = new VBox(10);
 
+    /**
+     * Конструктор ініціалізує інтерфейс вкладки:
+     * - кнопка генерації звіту,
+     * - прокручуваний список існуючих звітів.
+     */
     public ReportManagementTab() {
         getStylesheets().add(getClass().getResource("/style/report-tab.css").toExternalForm());
 
@@ -44,6 +62,10 @@ public class ReportManagementTab extends VBox {
         loadReports();
     }
 
+    /**
+     * Генерує новий звіт, включаючи інформацію про всіх користувачів і всі історичні місця.
+     * Звіт зберігається до бази даних як {@link ReportType#TEXT_EXPORT}.
+     */
     private void generateReport() {
         StringBuilder content = new StringBuilder();
 
@@ -77,6 +99,10 @@ public class ReportManagementTab extends VBox {
         loadReports();
     }
 
+    /**
+     * Завантажує всі наявні звіти з бази даних та відображає їх у вигляді розгорнутих панелей.
+     * Для кожного звіту доступні кнопки збереження, друку та видалення.
+     */
     private void loadReports() {
         reportList.getChildren().clear();
         List<Report> reports = reportDao.findAll();
@@ -130,6 +156,11 @@ public class ReportManagementTab extends VBox {
         }
     }
 
+    /**
+     * Зберігає вибраний звіт у форматі текстового файлу (.txt).
+     *
+     * @param report звіт для збереження
+     */
     private void saveAsTxt(Report report) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.get("save_txt_title", "Зберегти звіт як TXT"));
@@ -146,6 +177,11 @@ public class ReportManagementTab extends VBox {
         }
     }
 
+    /**
+     * Зберігає вибраний звіт у форматі DOCX за допомогою Apache POI.
+     *
+     * @param report звіт для експорту у формат Word (.docx)
+     */
     private void saveAsDocx(Report report) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.get("save_docx_title", "Зберегти як DOCX"));
@@ -173,6 +209,11 @@ public class ReportManagementTab extends VBox {
         }
     }
 
+    /**
+     * Відправляє звіт на друк через стандартну систему друку JavaFX.
+     *
+     * @param report звіт, який потрібно надрукувати
+     */
     private void printReport(Report report) {
         TextArea printArea = new TextArea(report.getContent());
         printArea.setWrapText(true);
@@ -189,6 +230,12 @@ public class ReportManagementTab extends VBox {
         }
     }
 
+    /**
+     * Відображає повідомлення про помилку у вигляді діалогового вікна.
+     *
+     * @param title заголовок повідомлення
+     * @param msg   текст повідомлення
+     */
     private void showError(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

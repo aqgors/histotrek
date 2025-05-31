@@ -26,8 +26,26 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Вікно авторизації користувача у застосунку Histotrek.
+ * <p>
+ * Забезпечує введення логіна або email, пароля, валідацію введених даних,
+ * повідомлення про помилки, а також ініціалізацію сесії користувача після успішного входу.
+ * Має анімований фон із піском та сучасний вигляд кнопок і полів.
+ * </p>
+ * Підтримує повноекранний режим (перемикається клавішею F11).
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class LoginWindow {
 
+    /**
+     * Відображає вікно входу з анімацією, формою авторизації, кнопками та темою.
+     *
+     * @param stage поточне вікно авторизації
+     * @param owner вікно, з якого викликається авторизація (наприклад, стартове вікно)
+     */
     public void show(Stage stage, Stage owner) {
         stage.setFullScreen(owner.isFullScreen());
         stage.setFullScreenExitHint("");
@@ -85,6 +103,18 @@ public class LoginWindow {
         form.requestFocus();
     }
 
+    /**
+     * Обробляє авторизацію користувача:
+     * виконує валідацію полів, перевіряє логін/email і пароль,
+     * створює сесію у базі даних та відкриває {@link UserWindow}.
+     *
+     * @param stage поточне вікно
+     * @param owner попереднє вікно (повертається до нього у разі невдачі)
+     * @param lf    поле вводу логіна або email
+     * @param pf    поле вводу пароля
+     * @param e1    мітка для помилок логіна/email
+     * @param e2    мітка для помилок пароля
+     */
     private void handleLogin(Stage stage, Stage owner,
         TextField lf, PasswordField pf,
         Label e1, Label e2) {
@@ -110,6 +140,12 @@ public class LoginWindow {
         }
     }
 
+    /**
+     * Створює стилізований заголовок форми.
+     *
+     * @param t текст заголовку
+     * @return об'єкт {@link Text} з відповідними стилями
+     */
     private Text title(String t) {
         Text x = new Text(t);
         x.setFont(Font.font("Arial", 32));
@@ -118,6 +154,12 @@ public class LoginWindow {
         return x;
     }
 
+    /**
+     * Створює стилізоване текстове поле з підказкою.
+     *
+     * @param prompt текст-підказка
+     * @return об'єкт {@link TextField}
+     */
     private TextField styledTextField(String prompt) {
         TextField f = new TextField();
         f.setPromptText(prompt);
@@ -134,6 +176,12 @@ public class LoginWindow {
         return f;
     }
 
+    /**
+     * Створює стилізоване поле для введення пароля.
+     *
+     * @param prompt текст-підказка
+     * @return об'єкт {@link PasswordField}
+     */
     private PasswordField styledPasswordField(String prompt) {
         PasswordField f = new PasswordField();
         f.setPromptText(prompt);
@@ -150,6 +198,11 @@ public class LoginWindow {
         return f;
     }
 
+    /**
+     * Створює стилізовану мітку для відображення повідомлень про помилки.
+     *
+     * @return об'єкт {@link Label} червоного кольору
+     */
     private Label styledError() {
         Label l = new Label();
         l.setTextFill(Color.RED);
@@ -159,6 +212,14 @@ public class LoginWindow {
         return l;
     }
 
+    /**
+     * Створює стилізовану кнопку з візуальними ефектами.
+     *
+     * @param text     текст кнопки
+     * @param baseStyle CSS-стиль для звичайного стану
+     * @param handler  обробник події натискання
+     * @return об'єкт {@link Button}
+     */
     private Button styledButton(
         String text,
         String baseStyle,
@@ -178,6 +239,11 @@ public class LoginWindow {
         return b;
     }
 
+    /**
+     * Анімує фон пісочними частинками, які піднімаються вгору.
+     *
+     * @param p шар, на якому відображаються частинки піску
+     */
     private void animateSand(Pane p) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = p.getWidth(), h = p.getHeight();
@@ -196,6 +262,12 @@ public class LoginWindow {
         tl.play();
     }
 
+    /**
+     * Прив'язує розміри шару до розмірів сцени.
+     *
+     * @param p панель (наприклад, фон)
+     * @param s сцена, до якої прив'язується
+     */
     private void bindSize(Pane p, Scene s) {
         p.prefWidthProperty().bind(s.widthProperty());
         p.prefHeightProperty().bind(s.heightProperty());

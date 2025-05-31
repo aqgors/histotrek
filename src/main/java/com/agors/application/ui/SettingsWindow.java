@@ -24,18 +24,45 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Вікно налаштувань користувача в застосунку Histotrek.
+ * <p>
+ * Дозволяє змінювати ім’я користувача, email, пароль, тему, мову, а також видаляти акаунт,
+ * переглядати інформацію про розробника, отримувати права адміністратора.
+ * Має структуру з секціями, кнопками та діалогами підтвердження.
+ * </p>
+ * Підтримує повноекранний режим, застосування теми в реальному часі та локалізацію.
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class SettingsWindow {
 
+    /** Посилання на вікно, з якого було відкрито налаштування. */
     private final Stage parentStage;
+    /** Валідатор для перевірки нових значень, що вводяться. */
     private final SettingsValidator validator = new SettingsValidator();
+    /** DAO для оновлення користувача в базі. */
     private final UserDaoImpl userDao = new UserDaoImpl();
+    /** Поточний авторизований користувач. */
     private final User currentUser = SessionContext.getCurrentUser();
+    /** Поточне вікно налаштувань. */
     private Stage currentSettingsStage;
 
+    /**
+     * Конструктор ініціалізує налаштування з батьківським вікном.
+     *
+     * @param parentStage вікно, яке відкрило форму налаштувань
+     */
     public SettingsWindow(Stage parentStage) {
         this.parentStage = parentStage;
     }
 
+    /**
+     * Відображає вікно налаштувань користувача з усіма секціями.
+     *
+     * @param settingsStage сцена, у якій буде відкрито вікно
+     */
     public void show(Stage settingsStage) {
         this.currentSettingsStage = settingsStage;
         parentStage.hide();
@@ -120,6 +147,12 @@ public class SettingsWindow {
         settingsStage.show();
     }
 
+    /**
+     * Обробка доступу до адмін-панелі. Після підтвердження пароля
+     * та/або введення коду адміну відкриває {@link AdminWindow}.
+     *
+     * @param owner поточне вікно
+     */
     private void handleAdminAccess(Stage owner) {
         if (!confirmPassword(owner)) return;
 
@@ -165,6 +198,12 @@ public class SettingsWindow {
 
     }
 
+    /**
+     * Створює статичний текст для відображення в секції «Support & Info».
+     *
+     * @param text текст повідомлення
+     * @return {@link Label} з відповідним стилем
+     */
     private Label createStaticText(String text) {
         Label label = new Label(text);
         label.setFont(Font.font("Arial", 13));
@@ -173,6 +212,12 @@ public class SettingsWindow {
         return label;
     }
 
+    /**
+     * Створює клікабельний email-лінк для звернення до розробника.
+     *
+     * @param email email-адреса
+     * @return {@link Hyperlink}, що відкриває Gmail
+     */
     private Hyperlink createEmailLink(String email) {
         Hyperlink link = new Hyperlink(I18n.get("contact_us", "✉ Contact us: ") + email);
         link.setFont(Font.font("Arial", 13));
@@ -193,6 +238,11 @@ public class SettingsWindow {
         return link;
     }
 
+    /**
+     * Створює кнопку зміни теми з діалогом вибору.
+     *
+     * @return {@link Button} для зміни теми
+     */
     private Button createThemeChanger() {
         Button btn = new Button(I18n.get("theme_button", "🎨 Apply another theme"));
         btn.setFont(Font.font("Arial", 14));
@@ -228,6 +278,11 @@ public class SettingsWindow {
         return btn;
     }
 
+    /**
+     * Створює вибір мови (українська / англійська).
+     *
+     * @return {@link ChoiceBox} для перемикання мови
+     */
     private ChoiceBox<String> createLanguageChoice() {
         ChoiceBox<String> cb = new ChoiceBox<>();
         cb.getItems().addAll(
@@ -248,6 +303,13 @@ public class SettingsWindow {
         return cb;
     }
 
+    /**
+     * Створює секцію налаштувань з заголовком і переданими елементами керування.
+     *
+     * @param heading назва секції
+     * @param controls елементи керування (кнопки, текст)
+     * @return контейнер {@link VBox} із секцією
+     */
     private VBox createSection(String heading, javafx.scene.Node... controls) {
         Text h = new Text(heading);
         h.setFont(Font.font("Arial", 14));
@@ -259,6 +321,13 @@ public class SettingsWindow {
         return box;
     }
 
+    /**
+     * Створює стилізовану кнопку з ефектами наведення.
+     *
+     * @param text текст кнопки
+     * @param handler обробник події
+     * @return об’єкт {@link Button}
+     */
     private Button createStyledButton(String text, javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
         Button btn = new Button(text);
         btn.setFont(Font.font("Arial", 14));
@@ -272,6 +341,11 @@ public class SettingsWindow {
         return btn;
     }
 
+    /**
+     * Створює кнопку «Назад» у вигляді круга зі стрілкою.
+     *
+     * @return стилізована кнопка {@link Button}
+     */
     private Button createBackButton() {
         StackPane circle = new StackPane();
         circle.setPrefSize(36, 36);
@@ -300,6 +374,11 @@ public class SettingsWindow {
         return btn;
     }
 
+    /**
+     * Обробляє зміну імені користувача.
+     *
+     * @param owner вікно, у якому відбувається зміна
+     */
     private void handleChangeUsername(Stage owner) {
         String newName = askInput(I18n.get("prompt_new_username", "New username:"), owner);
         if (newName == null) return;
@@ -323,6 +402,11 @@ public class SettingsWindow {
         );
     }
 
+    /**
+     * Обробляє зміну email-адреси користувача.
+     *
+     * @param owner вікно, у якому відбувається зміна
+     */
     private void handleChangeEmail(Stage owner) {
         String newEmail = askInput(I18n.get("prompt_new_email", "New email:"), owner);
         if (newEmail == null) return;
@@ -346,6 +430,11 @@ public class SettingsWindow {
         );
     }
 
+    /**
+     * Обробляє зміну пароля користувача.
+     *
+     * @param owner вікно, у якому відбувається зміна
+     */
     private void handleChangePassword(Stage owner) {
         String newPass = askInput(I18n.get("prompt_new_password", "New password:"), owner);
         if (newPass == null) return;
@@ -369,6 +458,11 @@ public class SettingsWindow {
         );
     }
 
+    /**
+     * Обробляє видалення акаунта користувача з підтвердженням.
+     *
+     * @param owner вікно, у якому відбувається дія
+     */
     private void handleDeleteAccount(Stage owner) {
         boolean confirmed = MessageBox.showConfirm(
             I18n.get("confirm_title_settings", "Confirmation"),
@@ -387,6 +481,12 @@ public class SettingsWindow {
         new MenuScreen().show(new Stage());
     }
 
+    /**
+     * Відкриває діалог підтвердження пароля користувача.
+     *
+     * @param owner вікно, в якому викликається підтвердження
+     * @return true, якщо пароль вірний
+     */
     private boolean confirmPassword(Stage owner) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(I18n.get("confirm_password_title", "Password Confirmation"));
@@ -408,6 +508,13 @@ public class SettingsWindow {
         return true;
     }
 
+    /**
+     * Відображає діалог із полем введення для зміни значення (username/email/password).
+     *
+     * @param msg повідомлення або підказка
+     * @param owner вікно, до якого прив’язаний діалог
+     * @return введене користувачем значення або null
+     */
     private String askInput(String msg, Stage owner) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(I18n.get("input_dialog_title", "Change value"));

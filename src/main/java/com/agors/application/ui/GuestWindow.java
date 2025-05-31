@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Форма гостьового режиму без авторизації.
+ * Вікно перегляду історичних місць у гостьовому режимі.
  * <p>
- * Відображає список всіх історичних місць, дозволяє пошук,
- * навігацію назад до головного меню, а також перехід на форми
- * входу та реєстрації для виконання авторизації.
+ * Дозволяє неавторизованим користувачам переглядати список історичних місць,
+ * виконувати пошук за назвою, країною або епохою, а також переходити до форм логіну чи реєстрації.
+ * Натискання на картку показує повідомлення про обмеження доступу.
  * </p>
  *
  * @author agors
@@ -142,6 +142,11 @@ public class GuestWindow {
         loadCards();
     }
 
+    /**
+     * Створює кнопку «Назад» з анімацією масштабування при наведенні.
+     *
+     * @return стилізована кнопка назад
+     */
     private Button createBackButton() {
         StackPane circle = new StackPane();
         circle.setPrefSize(36, 36);
@@ -175,6 +180,12 @@ public class GuestWindow {
         return btn;
     }
 
+    /**
+     * Створює стилізовану кнопку авторизації або реєстрації.
+     *
+     * @param text текст на кнопці
+     * @return стилізована кнопка
+     */
     private Button createActionButton(String text) {
         Button btn = new Button(text);
         btn.setFont(Font.font("Arial", 14));
@@ -216,6 +227,11 @@ public class GuestWindow {
         return btn;
     }
 
+    /**
+     * Створює контейнер із прокруткою, у якому розміщується FlowPane для карток місць.
+     *
+     * @return контейнер з картками
+     */
     private VBox wrapCards() {
         cardsFlow = new FlowPane(20, 20);
         cardsFlow.setPadding(new Insets(20));
@@ -227,16 +243,29 @@ public class GuestWindow {
         return new VBox(scrollPane);
     }
 
+    /**
+     * Завантажує всі історичні місця з бази даних і додає їх до інтерфейсу.
+     */
     private void loadCards() {
         allPlaces = new PlaceDaoImpl().findAll();
         showCards(allPlaces);
     }
 
+    /**
+     * Виводить картки місць на екран.
+     *
+     * @param places список місць, які потрібно показати
+     */
     private void showCards(List<Place> places) {
         cardsFlow.getChildren().clear();
         places.forEach(p -> cardsFlow.getChildren().add(createCard(p)));
     }
 
+    /**
+     * Фільтрує список місць за ключовим словом (назва, країна, епоха).
+     *
+     * @param query текст фільтрації
+     */
     private void filterPlaces(String query) {
         String lower = query.toLowerCase();
         List<Place> filtered = allPlaces.stream()
@@ -247,6 +276,12 @@ public class GuestWindow {
         showCards(filtered);
     }
 
+    /**
+     * Створює картку для одного історичного місця з інформацією та обмеженням доступу.
+     *
+     * @param place об’єкт {@link Place}
+     * @return стилізована картка з описом
+     */
     private VBox createCard(Place place) {
         VBox card = new VBox(10);
         card.setPadding(new Insets(10));
@@ -301,6 +336,12 @@ public class GuestWindow {
         return card;
     }
 
+    /**
+     * Змінює вигляд картки при наведенні миші — ефект масштабування та тінь.
+     *
+     * @param card  картка місця
+     * @param hover true, якщо наведено; false, якщо миша залишила
+     */
     private void hoverCard(VBox card, boolean hover) {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
         st.setToX(hover ? 1.05 : 1.0);
@@ -316,6 +357,11 @@ public class GuestWindow {
         );
     }
 
+    /**
+     * Запускає нескінченну анімацію піщинок, що падають на фоні.
+     *
+     * @param sandPane панель, на якій відображається пісок
+     */
     private void playSandAnimation(Pane sandPane) {
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double w = sandPane.getWidth(), h = sandPane.getHeight();

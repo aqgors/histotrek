@@ -25,16 +25,28 @@ import javafx.util.Duration;
 import java.util.Optional;
 
 /**
- * Клас, що реалізує екран завантаження (splash screen) для застосунку Histotrek.
+ * Клас, що реалізує заставку (splash screen) для застосунку Histotrek.
  * <p>
- * При відображенні показує анімацію пульсації тексту та падаючого піску,
- * після чого переходить на головне меню або виконує автологін.
+ * Відображає анімований вступ із логотипом, ефектом пульсації тексту
+ * та піщаною анімацією. Після паузи виконує ініціалізацію бази даних (DDL/DML)
+ * та визначає, чи виконати автологін чи відкрити головне меню.
  * </p>
+ * <ul>
+ *   <li>Якщо знайдено активну сесію користувача — переходить до {@link UserWindow}</li>
+ *   <li>Інакше — відкриває {@link MenuScreen}</li>
+ * </ul>
+ *
+ * @author agors
+ * @version 1.0
  */
 public class SplashScreen {
 
+    /** Вікно заставки. */
     private final Stage stage;
 
+    /**
+     * Конструктор створює splash-вікно з анімованим логотипом і піщинками.
+     */
     public SplashScreen() {
         stage = new Stage();
         stage.initStyle(StageStyle.UNDECORATED);
@@ -60,9 +72,10 @@ public class SplashScreen {
     }
 
     /**
-     * Відображає splash screen, виконує ініціалізацію БД, а після затримки — відкриває відповідне вікно.
+     * Показує splash screen, виконує перевірку конфігурацій DDL/DML,
+     * ініціалізує БД (за потреби), а потім відкриває відповідне вікно.
      *
-     * @param nextStage основне вікно, яке буде показане
+     * @param nextStage головне вікно, що буде відкрито після заставки
      */
     public void show(Stage nextStage) {
         boolean runDdl = Boolean.parseBoolean(PropertiesUtil.get("db.run.ddl", "false"));
@@ -102,6 +115,11 @@ public class SplashScreen {
         delay.play();
     }
 
+    /**
+     * Запускає нескінченну анімацію пульсації логотипу Histotrek.
+     *
+     * @param text елемент {@link Text}, до якого застосовується ефект
+     */
     private void playTextPulse(Text text) {
         ScaleTransition scaleUp = new ScaleTransition(Duration.seconds(1.5), text);
         scaleUp.setToX(1.05);
@@ -116,6 +134,11 @@ public class SplashScreen {
         pulse.play();
     }
 
+    /**
+     * Запускає анімацію піщинок, які падають вгору, імітуючи рух піску.
+     *
+     * @param sandPane панель, на якій відображаються піщинки
+     */
     private void playSandAnimation(Pane sandPane) {
         Timeline sandTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             Circle sand = new Circle(2, Color.web("#000000", 0.6));

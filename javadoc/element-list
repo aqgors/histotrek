@@ -1,7 +1,9 @@
 com.agors
-com.agors.application.form
+com.agors.application.admin
+com.agors.application.auth
 com.agors.application.ui
 com.agors.domain.entity
+com.agors.domain.enums
 com.agors.domain.validation
 com.agors.infrastructure.persistence.contract
 com.agors.infrastructure.persistence.impl

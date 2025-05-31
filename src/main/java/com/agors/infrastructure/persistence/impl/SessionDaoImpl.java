@@ -10,6 +10,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
+/**
+ * DAO-клас для роботи з таблицею <code>user_session</code>, яка зберігає інформацію про активні сесії користувачів.
+ * <p>Забезпечує створення, деактивацію, видалення сесій, а також пошук користувача за активною сесією.</p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class SessionDaoImpl {
 
     private static final String INSERT_SESSION = """
@@ -17,6 +24,13 @@ public class SessionDaoImpl {
         VALUES (?, ?, 1)
         """;
 
+    /**
+     * Створює новий запис у таблиці <code>user_session</code> для заданого користувача.
+     *
+     * @param userId ідентифікатор користувача
+     * @param token  токен сесії (може бути UUID або JWT)
+     * @throws RuntimeException у разі помилки SQL або з'єднання
+     */
     public void createSession(int userId, String token) {
         try {
             Connection conn = ConnectionManager.getConnection();
@@ -33,6 +47,12 @@ public class SessionDaoImpl {
         }
     }
 
+    /**
+     * Деактивує всі активні сесії для заданого користувача.
+     *
+     * @param userId ідентифікатор користувача
+     * @throws RuntimeException у разі помилки SQL або з'єднання
+     */
     public void deactivateByUserId(int userId) {
         String sql = "UPDATE user_session SET is_active = 0 WHERE user_id = ?";
         try {
@@ -49,6 +69,12 @@ public class SessionDaoImpl {
         }
     }
 
+    /**
+     * Повертає користувача з найновішою активною сесією (якщо така є).
+     *
+     * @return {@link Optional} з користувачем, якщо активна сесія знайдена
+     * @throws RuntimeException у разі помилки SQL або з'єднання
+     */
     public Optional<User> findUserByActiveSession() {
         String sql = """
             SELECT TOP 1 u.id, u.username, u.email, u.password, u.role
@@ -83,6 +109,12 @@ public class SessionDaoImpl {
         return Optional.empty();
     }
 
+    /**
+     * Видаляє всі сесії користувача з таблиці <code>user_session</code>.
+     *
+     * @param userId ідентифікатор користувача
+     * @throws RuntimeException у разі помилки SQL або з'єднання
+     */
     public void deleteByUserId(int userId) {
         String sql = "DELETE FROM user_session WHERE user_id = ?";
         try {

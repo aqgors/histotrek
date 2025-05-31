@@ -19,8 +19,26 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+/**
+ * Клас для створення кастомних діалогових вікон повідомлень та підтверджень у стилі Histotrek.
+ * <p>
+ * Забезпечує показ простих повідомлень (OK) та діалогів підтвердження (Yes/Cancel) з анімацією,
+ * стилізованим інтерфейсом та підтримкою локалізації через {@link I18n}.
+ * </p>
+ * Усі вікна мають затемнений фон, прозору сцену і округлені краї.
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class MessageBox {
 
+    /**
+     * Відображає діалогове вікно з повідомленням та кнопкою «OK».
+     *
+     * @param title  заголовок вікна
+     * @param message основний текст повідомлення
+     * @param owner  батьківське вікно, до якого прив'язується діалог
+     */
     public static void show(String title, String message, Stage owner) {
         Stage dialog = createBaseDialog(owner);
         VBox box = createBox();
@@ -35,6 +53,14 @@ public class MessageBox {
         showAnimated(dialog, box);
     }
 
+    /**
+     * Відображає діалог підтвердження з кнопками «Yes» та «Cancel».
+     *
+     * @param title   заголовок вікна
+     * @param message текст повідомлення
+     * @param owner   батьківське вікно
+     * @return true, якщо користувач натиснув «Yes», інакше false
+     */
     public static boolean showConfirm(String title, String message, Stage owner) {
         final boolean[] result = {false};
         Stage dialog = createBaseDialog(owner);
@@ -64,6 +90,12 @@ public class MessageBox {
         return result[0];
     }
 
+    /**
+     * Створює базове модальне діалогове вікно без рамки.
+     *
+     * @param owner батьківський {@link Stage}
+     * @return новий об'єкт {@link Stage}
+     */
     private static Stage createBaseDialog(Stage owner) {
         Stage dialog = new Stage();
         dialog.initOwner(owner);
@@ -73,6 +105,11 @@ public class MessageBox {
         return dialog;
     }
 
+    /**
+     * Створює контейнер VBox для діалогу з внутрішніми відступами та стилем.
+     *
+     * @return налаштований контейнер VBox
+     */
     private static VBox createBox() {
         VBox box = new VBox(14);
         box.setPadding(new Insets(18));
@@ -81,6 +118,12 @@ public class MessageBox {
         return box;
     }
 
+    /**
+     * Створює стилізований текст заголовку.
+     *
+     * @param text текст заголовку
+     * @return об'єкт {@link Text}
+     */
     private static Text createTitle(String text) {
         Text t = new Text(text);
         t.setFont(Font.font("Arial", 18));
@@ -88,6 +131,12 @@ public class MessageBox {
         return t;
     }
 
+    /**
+     * Створює стилізований текст повідомлення з вирівнюванням по центру.
+     *
+     * @param text текст повідомлення
+     * @return об'єкт {@link Text}
+     */
     private static Text createMessage(String text) {
         Text t = new Text(text);
         t.setFont(Font.font("Arial", 13));
@@ -97,6 +146,13 @@ public class MessageBox {
         return t;
     }
 
+    /**
+     * Створює кнопку з заданим кольором фону, стилем наведення і фіксованою шириною.
+     *
+     * @param text    текст кнопки
+     * @param bgColor базовий колір фону у форматі HEX
+     * @return об'єкт {@link Button}
+     */
     private static Button createButton(String text, String bgColor) {
         Button btn = new Button(text);
         btn.setFont(Font.font("Arial", 13));
@@ -107,6 +163,12 @@ public class MessageBox {
         return btn;
     }
 
+    /**
+     * Показує вікно діалогу з ефектами появи (Fade + Scale).
+     *
+     * @param dialog Stage діалогу
+     * @param box    головний вміст діалогу (VBox)
+     */
     private static void showAnimated(Stage dialog, VBox box) {
         StackPane root = new StackPane(box);
         root.setStyle("-fx-background-color: transparent");

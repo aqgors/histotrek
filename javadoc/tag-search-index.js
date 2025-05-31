@@ -1,1 +1,1 @@
-tagSearchIndex = [];updateSearchResults();
+tagSearchIndex = [{"l":"Приклад використання:","h":"class com.agors.infrastructure.util.ConnectionHolder","d":"Section","u":"com/agors/infrastructure/util/ConnectionHolder.html#--heading"}];updateSearchResults();

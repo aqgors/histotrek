@@ -10,10 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Реалізація інтерфейсу FavoriteDao для роботи з таблицею favorite.
+ * Реалізація інтерфейсу {@link FavoriteDao} для доступу до таблиці {@code favorite}.
  * <p>
- * Забезпечує додавання, отримання та видалення записів обраних місць користувача
- * у базі даних за допомогою JDBC.</p>
+ * Забезпечує збереження, видалення та отримання обраних історичних місць користувачем
+ * через JDBC-з'єднання до реляційної бази даних.
+ * </p>
+ * Також включає перевірку, чи є місце улюбленим, і метод для безпечного додавання.
  *
  * @author agors
  * @version 1.0
@@ -21,11 +23,11 @@ import java.util.List;
 public class FavoriteDaoImpl implements FavoriteDao {
 
     /**
-     * Додає новий запис обраного місця у таблицю favorite.
+     * Додає новий запис до таблиці {@code favorite}.
      *
-     * @param fav об'єкт Favorite з інформацією про користувача та місце
-     * @return збережений об'єкт Favorite з встановленим id
-     * @throws RuntimeException у разі помилки доступу до БД
+     * @param fav об'єкт {@link Favorite}, який містить userId, placeId, createdAt
+     * @return збережений об'єкт {@link Favorite} з оновленим id
+     * @throws RuntimeException у разі помилки бази даних
      */
     @Override
     public Favorite add(Favorite fav) {
@@ -48,11 +50,11 @@ public class FavoriteDaoImpl implements FavoriteDao {
     }
 
     /**
-     * Повертає список обраних місць для вказаного користувача.
+     * Повертає список усіх обраних місць для заданого користувача.
      *
-     * @param userId унікальний ідентифікатор користувача
-     * @return список об'єктів Favorite
-     * @throws RuntimeException у разі помилки доступу до БД
+     * @param userId ID користувача
+     * @return список об'єктів {@link Favorite}
+     * @throws RuntimeException у разі помилки бази даних
      */
     @Override
     public List<Favorite> findByUser(int userId) {
@@ -73,11 +75,11 @@ public class FavoriteDaoImpl implements FavoriteDao {
     }
 
     /**
-     * Видаляє запис обраного місця для користувача.
+     * Видаляє місце з обраного для заданого користувача.
      *
-     * @param userId  унікальний ідентифікатор користувача
-     * @param placeId унікальний ідентифікатор місця
-     * @throws RuntimeException у разі помилки доступу до БД
+     * @param userId  ID користувача
+     * @param placeId ID історичного місця
+     * @throws RuntimeException у разі помилки бази даних
      */
     @Override
     public void remove(int userId, int placeId) {
@@ -108,6 +110,12 @@ public class FavoriteDaoImpl implements FavoriteDao {
         return f;
     }
 
+    /**
+     * Додає запис до обраного лише в тому випадку, якщо такого ще не існує.
+     *
+     * @param userId  ID користувача
+     * @param placeId ID історичного місця
+     */
     public boolean isFavorite(int userId, int placeId) {
         String sql = "SELECT TOP 1 1 FROM favorite WHERE user_id = ? AND place_id = ?";
         try (Connection conn = ConnectionManager.getConnection();
@@ -122,6 +130,12 @@ public class FavoriteDaoImpl implements FavoriteDao {
         }
     }
 
+    /**
+     * Приватний метод для мапінгу {@link ResultSet} у об'єкт {@link Favorite}.
+     *
+     * @return об'єкт {@link Favorite}, заповнений з бази даних
+     * @throws SQLException у разі помилки зчитування з {@code ResultSet}
+     */
     public void addToFavorites(int userId, int placeId) {
         String sqlCheck = "SELECT 1 FROM favorite WHERE user_id = ? AND place_id = ?";
         String sqlInsert = "INSERT INTO favorite (user_id, place_id, created_at) VALUES (?, ?, GETDATE())";

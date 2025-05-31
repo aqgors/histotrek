@@ -9,6 +9,30 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * Клас для керування пулом з'єднань до бази даних.
+ * <p>
+ * Реалізує простий механізм connection pool з використанням обгортки (proxy),
+ * яка перехоплює виклики методу {@code close()} і повертає з'єднання у пул замість реального закриття.
+ * </p>
+ *
+ * <p>
+ * Налаштування зчитуються з файлу властивостей:
+ * <ul>
+ *     <li>{@code db.url} — URL бази даних</li>
+ *     <li>{@code db.username} — ім’я користувача</li>
+ *     <li>{@code db.password} — пароль</li>
+ *     <li>{@code db.pool.size} — розмір пулу (опціонально, за замовчуванням 5)</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Для використання: {@code Connection conn = ConnectionManager.getConnection();}
+ * </p>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class ConnectionManager {
 
     private static final String URL_KEY       = "db.url";
@@ -31,8 +55,15 @@ public class ConnectionManager {
         initPool(size);
     }
 
+    /**
+     * Приватний конструктор для заборони створення екземплярів утилітного класу.
+     */
     private ConnectionManager() {}
 
+    /**
+     * Завантажує JDBC-драйвер SQL Server.
+     * Викликається під час ініціалізації класу.
+     */
     private static void loadDriver() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -41,6 +72,11 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Ініціалізує пул з'єднань заданого розміру.
+     *
+     * @param size кількість з'єднань у пулі
+     */
     private static void initPool(int size) {
         for (int i = 0; i < size; i++) {
             Connection real = openNew();
@@ -62,6 +98,11 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Встановлює нове реальне з'єднання до бази даних.
+     *
+     * @return нове з'єднання JDBC
+     */
     private static Connection openNew() {
         try {
             String url = PropertiesUtil.get(URL_KEY);
@@ -76,6 +117,15 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Повертає одне з'єднання з пулу для використання у DAO-операціях.
+     * <p>
+     * З'єднання автоматично зберігається у {@link ConnectionHolder} для доступу з інших компонентів.
+     * </p>
+     *
+     * @return об'єкт {@link Connection}
+     * @throws RuntimeException якщо очікування з'єднання було перерване
+     */
     public static Connection getConnection() {
         try {
             Connection conn = pool.take();
@@ -87,6 +137,10 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Закриває всі реальні з'єднання в пулі.
+     * Викликається під час завершення роботи застосунку.
+     */
     public static void shutdown() {
         for (Connection real : realConnections) {
             try {

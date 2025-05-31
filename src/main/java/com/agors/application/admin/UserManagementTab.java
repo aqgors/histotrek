@@ -12,12 +12,30 @@ import javafx.scene.layout.*;
 
 import java.util.stream.Collectors;
 
+/**
+ * Вкладка адміністрування користувачів у панелі адміністратора.
+ * <p>
+ * Надає можливість переглядати список користувачів, фільтрувати їх за ім’ям або email,
+ * змінювати ролі (USER / ADMIN) та видаляти користувачів, крім поточного.
+ * </p>
+ * Реалізовано з використанням JavaFX UI-компонентів.
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class UserManagementTab extends VBox {
 
+    /** DAO-обʼєкт для доступу до користувачів у базі даних. */
     private final UserDaoImpl userDao = new UserDaoImpl();
+    /** Список користувачів, що відповідає фільтру пошуку. */
     private final ObservableList<User> users = FXCollections.observableArrayList();
+    /** Контейнер для динамічного відображення користувацьких карток. */
     private final VBox userListContainer = new VBox(10);
 
+    /**
+     * Конструктор ініціалізує вкладку з пошуком, прокручуваним списком користувачів
+     * та підключенням стилів.
+     */
     public UserManagementTab() {
         getStylesheets().add(getClass().getResource("/style/user-tab.css").toExternalForm());
 
@@ -43,6 +61,11 @@ public class UserManagementTab extends VBox {
         updateUserList("");
     }
 
+    /**
+     * Оновлює список користувачів, що відповідають вказаному рядку фільтрації.
+     *
+     * @param filter текст фільтра (імʼя або email користувача)
+     */
     private void updateUserList(String filter) {
         users.setAll(userDao.getAllUsers().stream()
             .filter(u -> u.getUsername().toLowerCase().contains(filter.toLowerCase()) ||
@@ -55,6 +78,13 @@ public class UserManagementTab extends VBox {
         }
     }
 
+    /**
+     * Створює графічну картку користувача з відображенням імені, email,
+     * можливістю зміни ролі та кнопкою видалення.
+     *
+     * @param user обʼєкт {@link User}, який буде відображено у списку
+     * @return компонент {@link HBox} з інформацією про користувача
+     */
     private HBox createUserCard(User user) {
         HBox card = new HBox(20);
         card.setPadding(new Insets(10));

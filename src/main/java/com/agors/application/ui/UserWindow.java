@@ -41,6 +41,23 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.*;
 import javafx.util.Duration;
 
+/**
+ * Основне вікно користувача в застосунку Histotrek.
+ * <p>
+ * Дозволяє переглядати всі історичні місця та улюблені, шукати, оцінювати, залишати та редагувати відгуки,
+ * додавати місця в улюблене, змінювати налаштування, а також виходити з акаунта.
+ * Підтримує анімацію піску, адаптацію до теми, повноекранний режим та багатомовність.
+ * </p>
+ *
+ * <ul>
+ *     <li>Вкладки: "All" (усі місця) та "Favorites" (улюблені)</li>
+ *     <li>Картки місць з детальним вікном</li>
+ *     <li>Відгуки та рейтинг у модальному вікні</li>
+ * </ul>
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class UserWindow {
 
     private final PlaceDaoImpl placeDaoImpl = new PlaceDaoImpl();
@@ -56,6 +73,13 @@ public class UserWindow {
     private StackPane stack;
     private Scene scene;
 
+    /**
+     * Запускає вікно користувача з вкладками, пошуком і панеллю керування.
+     *
+     * @param stage         головна сцена
+     * @param userId        ID авторизованого користувача
+     * @param isFullScreen  режим повноекранного запуску
+     */
     public void start(Stage stage, int userId, boolean isFullScreen) {
         this.primaryStage = stage;
         this.currentUserId = userId;
@@ -129,6 +153,9 @@ public class UserWindow {
         });
     }
 
+    /**
+     * Оновлює тему інтерфейсу та перезапускає анімацію піску.
+     */
     private void updateTheme() {
         ThemeType theme = ThemeManager.getCurrentTheme();
         String bgColor;
@@ -147,6 +174,11 @@ public class UserWindow {
         }
     }
 
+    /**
+     * Запускає анімацію піщинок, що рухаються вгору відповідно до теми.
+     *
+     * @param pane контейнер, в якому показується анімація
+     */
     private void playSandAnimation(Pane pane) {
         Color[] colors = ThemeManager.getSandColors();
         Timeline tl = new Timeline(
@@ -166,6 +198,11 @@ public class UserWindow {
         tl.play();
     }
 
+    /**
+     * Створює верхню панель з пошуком, заголовком та кнопкою профілю.
+     *
+     * @return налаштований {@link HBox}
+     */
     private HBox createTopBar() {
         HBox bar = new HBox(10);
         bar.setAlignment(Pos.CENTER_LEFT);
@@ -228,6 +265,9 @@ public class UserWindow {
         return bar;
     }
 
+    /**
+     * Оновлює колір заголовка залежно від теми.
+     */
     private void updateTitleColor() {
         if (titleLabel == null) return;
 
@@ -237,6 +277,11 @@ public class UserWindow {
         );
     }
 
+    /**
+     * Створює новий {@link FlowPane} для відображення карток.
+     *
+     * @return новий контейнер FlowPane
+     */
     private FlowPane createFlow() {
         FlowPane flow = new FlowPane(20, 20);
         flow.setPadding(new Insets(20));
@@ -244,6 +289,12 @@ public class UserWindow {
         return flow;
     }
 
+    /**
+     * Обгортає FlowPane у ScrollPane зі стилізацією.
+     *
+     * @param flow FlowPane, який потрібно прокручувати
+     * @return обгорнутий компонент
+     */
     private ScrollPane wrapScroll(FlowPane flow) {
         ScrollPane sp = new ScrollPane(flow);
         sp.setFitToWidth(true);
@@ -251,11 +302,22 @@ public class UserWindow {
         return sp;
     }
 
+    /**
+     * Завантажує картки місць до вказаного контейнера.
+     *
+     * @param flow   контейнер для карток
+     * @param places список місць
+     */
     private void loadCards(FlowPane flow, List<Place> places) {
         flow.getChildren().clear();
         places.forEach(p -> flow.getChildren().add(createCard(p)));
     }
 
+    /**
+     * Отримує список улюблених місць поточного користувача.
+     *
+     * @return список {@link Place}
+     */
     private List<Place> getFavoritePlaces() {
         return favoriteDaoImpl.findByUser(currentUserId).stream()
             .map(Favorite::getPlaceId)
@@ -264,6 +326,13 @@ public class UserWindow {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Фільтрує список місць за запитом (назва, країна, епоха).
+     *
+     * @param list список місць
+     * @param q    рядок запиту
+     * @return відфільтрований список
+     */
     private List<Place> filterList(List<Place> list, String q) {
         String lower = q.toLowerCase();
         return list.stream()
@@ -273,6 +342,12 @@ public class UserWindow {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Створює картку одного місця з назвою, зображенням, рейтингом і описом.
+     *
+     * @param place обʼєкт {@link Place}
+     * @return оформлена картка
+     */
     private VBox createCard(Place place) {
         VBox card = new VBox(10);
         card.setPadding(new Insets(10));
@@ -330,6 +405,12 @@ public class UserWindow {
         return card;
     }
 
+    /**
+     * Змінює вигляд картки при наведенні (анімоване масштабування та тінь).
+     *
+     * @param card  картка місця
+     * @param hover true, якщо наведено
+     */
     private void hoverCard(VBox card, boolean hover) {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
         st.setToX(hover ? 1.05 : 1.0);
@@ -351,6 +432,18 @@ public class UserWindow {
                 "-fx-effect: " + effect + ";");
     }
 
+    /**
+     * Відображає детальну інформацію про місце у вигляді модального вікна:
+     * <ul>
+     *     <li>Фото, країна, епоха, опис</li>
+     *     <li>Улюблене</li>
+     *     <li>Середній рейтинг</li>
+     *     <li>Список відгуків з можливістю редагування/видалення</li>
+     *     <li>Форма для створення нового відгуку</li>
+     * </ul>
+     *
+     * @param place обʼєкт {@link Place}, який буде показано
+     */
     private void showCardDetails(Place place) {
         VBox content = new VBox(15);
         content.setAlignment(Pos.TOP_CENTER);

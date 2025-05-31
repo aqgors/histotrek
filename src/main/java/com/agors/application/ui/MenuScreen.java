@@ -24,8 +24,24 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Стартове вікно застосунку Histotrek.
+ * <p>
+ * Дозволяє користувачу вибрати режим роботи: авторизація, реєстрація або гостьовий перегляд.
+ * Також підтримується вибір мови інтерфейсу та анімований фон (пісок).
+ * </p>
+ * Перехід на відповідні вікна реалізовано через {@link LoginWindow}, {@link SignupWindow} та {@link GuestWindow}.
+ *
+ * @author agors
+ * @version 1.0
+ */
 public class MenuScreen {
 
+    /**
+     * Відображає стартове вікно меню.
+     *
+     * @param stage головна сцена застосунку
+     */
     public void show(Stage stage) {
         Text title = new Text("HISTOTREK");
         title.setFont(Font.font("Arial", 44));
@@ -113,6 +129,12 @@ public class MenuScreen {
         stage.show();
     }
 
+    /**
+     * Створює стилізовану кнопку з ефектом наведеного стану.
+     *
+     * @param text текст кнопки
+     * @return об'єкт {@link Button} зі стилями і тінню
+     */
     private Button createAnimatedButton(String text) {
         final String baseStyle = "-fx-background-color: #c2b280; -fx-text-fill: white; " +
             "-fx-font-size: 18px; -fx-background-radius: 15; -fx-cursor: hand;";
@@ -132,6 +154,12 @@ public class MenuScreen {
         return button;
     }
 
+    /**
+     * Запускає нескінченну анімацію піщинок, які плавно рухаються вгору.
+     * Ефект створюється на окремому шарі поверх фону.
+     *
+     * @param sandPane панель, на якій анімується пісок
+     */
     private void playSandAnimation(Pane sandPane) {
         Timeline sandTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
             double width = sandPane.getWidth();
